@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build output
+out/
+dist/
+*.vsix
+/*.zip
+/PROJECT_CONTEXT.md
+
+# IDE
+.vscode/
+.idea/
+.sfdx/
+.sf/
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+.logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db 

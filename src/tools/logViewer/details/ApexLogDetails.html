@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Details</title>
+    <link rel="stylesheet" type="text/css" href="${styleUri}">
+</head>
+<body>
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label class="checkbox-container">
+                <input type="checkbox" id="hide-heap-allocate" checked>
+                <span class="checkmark"></span>
+                Hide HEAP_ALLOCATE
+            </label>
+            <label class="checkbox-container">
+                <input type="checkbox" id="only-user-debug">
+                <span class="checkmark"></span>
+                Show Debug Logs
+            </label>
+        </div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input id="log-search-input" type="text" placeholder="Search logs..." class="vscode-input">
+        </div>
+    </div>
+    <div id="log-table-container">
+        <div class="table-header-sticky">
+            <div id="log-table-header-wrapper">
+                <table id="log-table-header">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Time</th>
+                            <th>Event</th>
+                            <th>Line</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div id="virtual-viewport">
+            <div id="content-container"></div>
+        </div>
+    </div>
+    <script src="${scriptUri}"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${cspSource}; script-src 'nonce-${nonce}';">
+    <title>Experience Login URL</title>
+    <link rel="stylesheet" href="${styleUri}">
+</head>
+<body>
+    <main>
+        <header>
+            <h1>Experience Login URL</h1>
+            <div class="field">
+                <label for="org-select">Salesforce org</label>
+                <div class="network-row">
+                    <select id="org-select" disabled aria-label="Salesforce org"></select>
+                    <button id="refresh-orgs" type="button" disabled>Refresh orgs</button>
+                </div>
+            </div>
+        </header>
+        <form id="login-form">
+            <div class="field">
+                <label for="email">Contact email</label>
+                <div class="network-row">
+                    <input id="email" type="email" autocomplete="off" required maxlength="254" placeholder="user@example.com">
+                    <button id="find-contacts" type="button" disabled>Find contacts</button>
+                </div>
+            </div>
+            <div class="field">
+                <label for="contact">Contact / Experience user</label>
+                <select id="contact" required disabled aria-label="Contact or Experience user">
+                    <option value="">Find contacts by email</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="network">Experience network</label>
+                <div class="network-row">
+                    <select id="network" required disabled aria-label="Experience network"></select>
+                    <button id="refresh" type="button">Refresh networks</button>
+                </div>
+            </div>
+            <button id="generate" type="submit" disabled>Generate login URL</button>
+        </form>
+        <div id="status" role="status" aria-live="polite">Loading authenticated Salesforce orgs...</div>
+        <section id="result" aria-label="Generated login URL" hidden>
+            <h2>Login URL ready</h2>
+            <p class="warning">This URL contains a Salesforce session credential. Do not share it or add it to logs or source control.</p>
+            <div class="actions">
+                <button id="copy" type="button">Copy URL</button>
+                <button id="open" type="button">Open in browser</button>
+            </div>
+        </section>
+    </main>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>

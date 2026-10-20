@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} data:; style-src ${cspSource}; script-src 'nonce-${nonce}' ${cspSource};">
+    <title>SOQL Query Runner</title>
+    <link rel="stylesheet" href="${styleUri}">
+</head>
+<body>
+    <main>
+        <header class="toolbar">
+            <label class="control-group org-control">
+                <span>Org</span>
+                <select id="org-select" aria-label="Salesforce org"></select>
+            </label>
+            <button id="refresh-orgs" type="button" title="Refresh authenticated orgs">Refresh orgs</button>
+            <label class="control-group query-control">
+                <span>Saved query</span>
+                <select id="query-select" aria-label="Saved query"></select>
+            </label>
+            <button id="reload-library" type="button">Reload library</button>
+            <button id="open-library" type="button">Open library</button>
+        </header>
+
+        <section class="query-section" aria-label="SOQL query">
+            <div class="query-heading">
+                <label class="query-name-control">
+                    <span>Query name</span>
+                    <input id="query-name" type="text" maxlength="100" autocomplete="off">
+                </label>
+                <div class="query-actions">
+                    <button id="new-query" type="button">New</button>
+                    <button id="save-query" type="button">Save</button>
+                    <button id="delete-query" type="button" class="danger" disabled>Delete</button>
+                </div>
+            </div>
+            <label class="editor-label" for="soql-editor">SOQL</label>
+            <textarea id="soql-editor" spellcheck="false" aria-label="SOQL query"></textarea>
+            <div id="parameter-fields" class="parameter-fields"></div>
+            <div class="run-row">
+                <button id="run-query" type="button" class="primary">Run query</button>
+                <span id="query-status" role="status" aria-live="polite">Loading authenticated orgs...</span>
+            </div>
+        </section>
+
+        <section class="results-section" aria-label="Query results">
+            <div class="results-heading">
+                <h2>Results</h2>
+                <span id="result-count">0 rows</span>
+                <label class="search-control">
+                    <span>Search</span>
+                    <input id="global-search" type="search" placeholder="Search results" disabled>
+                </label>
+                <button id="download-csv" type="button" disabled>Download CSV</button>
+            </div>
+            <div id="results-message" class="results-message">Run a query to see results.</div>
+            <div id="table-container" class="table-container" hidden></div>
+        </section>
+    </main>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
+</body>
+</html>

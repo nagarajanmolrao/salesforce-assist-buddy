@@ -1,0 +1,63 @@
+# Exclude all node_modules since we're bundling
+node_modules
+
+# Speacially exclude these files
+helperScripts/**
+PROJECT_CONTEXT.md
+salesforce-assist-buddy-sc.zip
+
+# Exclude source maps and source test files
+src/**/*.map
+src/**/*.test.*
+src/**/*.spec.*
+
+# Only include built webview assets and used images
+!src/images/extension_logo.png
+!src/tools/logViewer/panel/ApexLogPanel.html
+!src/tools/logViewer/panel/ApexLogPanel.css
+!src/tools/logViewer/panel/ApexLogPanel.js
+!src/tools/logViewer/details/ApexLogDetails.html
+!src/tools/logViewer/details/ApexLogDetails.css
+!src/tools/logViewer/details/ApexLogDetails.js
+!src/tools/soqlRunner/SoqlRunner.html
+!src/tools/soqlRunner/SoqlRunner.css
+!src/tools/soqlRunner/SoqlRunner.js
+!src/tools/experienceLogin/ExperienceLogin.html
+!src/tools/experienceLogin/ExperienceLogin.css
+!src/tools/experienceLogin/ExperienceLogin.js
+
+# Exclude VS Code and git config
+.vscode
+.git
+.gitignore
+
+# Exclude build/test/config files
+out/test
+tsconfig.json
+README.md
+*.md
+*.yml
+*.yaml
+*.json
+*.eslintrc*
+*.prettierrc*
+esbuild.js
+
+# Include corresponding source, build inputs, and release notices
+!src/**/*.ts
+!esbuild.js
+!tsconfig.json
+!package.json
+!package-lock.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!NOTICE
+
+test
+*.vsix
+
+# Exclude OS-specific files
+*.log
+.DS_Store
+Thumbs.db

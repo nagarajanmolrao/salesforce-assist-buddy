@@ -1,0 +1,16 @@
+Salesforce Assist Buddy
+
+Based on Salesforce AN Log Viewer.
+Original copyright notice: Copyright (c) 2025 Adria Gil
+
+This distribution includes modifications to diagnostics, user search,
+extension identity, configuration handling, and documentation.
+
+Version 1.0.0 of this standalone repository is distributed under the GNU General Public License,
+version 3 only (GPL-3.0-only), following the maintainer's confirmation
+of authorization to relicense the underlying code. See LICENSE.
+
+Earlier source distributions used CC BY-NC 4.0. This release does not
+change licenses on earlier distributions. Original attribution is retained.
+
+Third-party dependencies remain subject to their respective licenses.

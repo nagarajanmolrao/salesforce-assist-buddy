@@ -1,0 +1,256 @@
+{
+  "name": "salesforce-assist-buddy",
+  "displayName": "Salesforce Assist Buddy",
+  "description": "View and manage Salesforce developer logs with auto-refresh and filtering capabilities",
+  "version": "1.0.0",
+  "publisher": "Anmol",
+  "author": {
+    "name": "Anmol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nagarajanmolrao/salesforce-assist-buddy.git"
+  },
+  "license": "GPL-3.0-only",
+  "keywords": [
+    "salesforce",
+    "apex",
+    "logs",
+    "debugging",
+    "development"
+  ],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "categories": [
+    "Debuggers",
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:salesforceAssistBuddy.logs"
+  ],
+  "main": "./out/extension.js",
+  "icon": "src/images/extension_logo.png",
+  "contributes": {
+    "configuration": {
+      "title": "Salesforce Assist Buddy",
+      "properties": {
+        "salesforceAssistBuddy.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically refresh logs at the configured interval"
+        },
+        "salesforceAssistBuddy.refreshInterval": {
+          "type": "number",
+          "minimum": 1000,
+          "default": 5000,
+          "description": "Interval in milliseconds between automatic log refreshes (minimum 1000ms)"
+        },
+        "salesforceAssistBuddy.currentUserOnly": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show logs only for the current user"
+        },
+        "salesforceAssistBuddy.traceFlagExpirationInterval": {
+          "type": "number",
+          "default": 15,
+          "minimum": 5,
+          "description": "Expiration interval (in minutes) for Salesforce trace flags. Minimum: 5, Default: 15."
+        },
+        "salesforceAssistBuddy.showOutputOnStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Salesforce Assist Buddy output channel when the extension starts"
+        },
+        "salesforceAssistBuddy.debugLevel": {
+          "type": "string",
+          "default": "InternalAll",
+          "description": "Select the Debug Level for the log. Default : InternalAll",
+          "enum": [
+            "InternalAll",
+            "SFDC_DevConsole"
+          ]
+        }
+      }
+    },
+    "viewsContainers": {
+      "panel": [
+        {
+          "id": "salesforce-assist-buddy",
+          "title": "Salesforce Assist Buddy",
+          "icon": "$(database)"
+        }
+      ]
+    },
+    "views": {
+      "salesforce-assist-buddy": [
+        {
+          "type": "webview",
+          "id": "salesforceAssistBuddy.logs",
+          "name": "Salesforce Assist Buddy",
+          "contextualTitle": "Salesforce Assist Buddy"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "salesforce-assist-buddy.refreshLogs",
+        "title": "Refresh Logs",
+        "icon": "$(refresh)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.toggleCurrentUserOnly",
+        "title": "Log Visibility",
+        "icon": "$(person)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.deleteAllLogs",
+        "title": "Delete All Logs",
+        "icon": "$(trash)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.showOptions",
+        "title": "Show Options",
+        "icon": "$(gear)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.showSearchBox",
+        "title": "Search Logs",
+        "icon": "$(search)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.toggleAutoRefresh",
+        "title": "Toggle Auto Refresh",
+        "icon": "$(sync)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.clearDownloadedLogs",
+        "title": "Clear Downloaded Logs",
+        "icon": "$(clear-all)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.setTraceFlagForUser",
+        "title": "Set TraceFlag for User",
+        "icon": "$(flag)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.setTraceFlagBySearch",
+        "title": "Set TraceFlag by Username or Email",
+        "icon": "$(person-add)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent",
+        "title": "Delete All Trace Flags (Except Current User)",
+        "icon": "$(circle-slash)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.showLogDetails",
+        "title": "Log Details",
+        "icon": "$(list-flat)",
+        "category": "Salesforce Assist Buddy"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "salesforce-assist-buddy.showSearchBox",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@1"
+        },
+        {
+          "command": "salesforce-assist-buddy.refreshLogs",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@2"
+        },
+        {
+          "command": "salesforce-assist-buddy.toggleCurrentUserOnly",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@3"
+        },
+        {
+          "command": "salesforce-assist-buddy.setTraceFlagForUser",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@4"
+        },
+        {
+          "command": "salesforce-assist-buddy.setTraceFlagBySearch",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@4.1"
+        },
+        {
+          "command": "salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@5"
+        },
+        {
+          "command": "salesforce-assist-buddy.clearDownloadedLogs",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@6"
+        },
+        {
+          "command": "salesforce-assist-buddy.deleteAllLogs",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@7"
+        },
+        {
+          "command": "salesforce-assist-buddy.showOptions",
+          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
+          "group": "navigation@8"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "salesforce-assist-buddy.showLogDetails",
+          "title": "Log Details",
+          "icon": "$(list-flat)",
+          "when": "resourceLangId =~ /log/ || resourceExtname =~ /\\.log/ || resourceFilename =~ /.*07LJW.*/ || resourceFilename =~ /.*\\d{2}-\\d{2}-\\d{4}_\\d{2}-\\d{2}.*/",
+          "group": "navigation@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "watch": "tsc -watch -p ./",
+    "dev": "node esbuild.js",
+    "pretest": "npm run typecheck",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext ts",
+    "test": "node --test test/commands.test.js test/logger.test.js test/soqlRunner.test.js test/logViewer.test.js test/experienceLogin.test.js"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/jsforce": "^1.11.5",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.100.0",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.25.4",
+    "eslint": "^9.27.0",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@salesforce/core": "^8.11.3",
+    "fs-extra": "^11.3.0",
+    "jsforce": "^3.8.2"
+  },
+  "allowScripts": {
+    "@vscode/vsce-sign@2.1.0": true,
+    "core-js@3.50.0": true,
+    "core-js-pure@3.50.0": true,
+    "esbuild@0.25.12": true,
+    "keytar@7.9.0": true
+  }
+}

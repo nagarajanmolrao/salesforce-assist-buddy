@@ -1,0 +1,374 @@
+body { 
+    margin: 0; 
+    padding: 0; 
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    height: 100vh;
+    overflow: hidden;
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.grid {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--vscode-editor-background);
+    overflow: hidden;
+    position: relative;
+}
+
+.tool-toolbar {
+    position: relative;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-descriptionForeground);
+    flex-wrap: wrap;
+    row-gap: 4px;
+}
+
+.operation-filter {
+    position: relative;
+    max-width: 100%;
+    color: var(--vscode-foreground);
+}
+
+.operation-filter summary {
+    cursor: pointer;
+    padding: 4px 6px;
+    overflow-wrap: anywhere;
+}
+
+.operation-filter-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 20;
+    width: min(340px, calc(100vw - 24px));
+    max-height: min(280px, 65vh);
+    overflow: auto;
+    padding: 6px;
+    background: var(--vscode-dropdown-background, var(--vscode-editor-background));
+    border: 1px solid var(--vscode-dropdown-border, var(--vscode-panel-border));
+    border-radius: 2px;
+}
+
+.operation-filter-menu label {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 4px;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.operation-filter-menu label:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.operation-filter-all {
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.operation-filter summary:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+}
+
+@media (max-width: 480px) {
+    .operation-filter {
+        position: static;
+    }
+
+    .operation-filter-menu {
+        left: 8px;
+    }
+}
+
+.tool-toolbar select {
+    min-width: 150px;
+    max-width: 100%;
+    height: 24px;
+    padding: 2px 6px;
+    border: 1px solid var(--vscode-dropdown-border, var(--vscode-input-border));
+    border-radius: 2px;
+    background: var(--vscode-dropdown-background);
+    color: var(--vscode-dropdown-foreground);
+    font: inherit;
+}
+
+.tool-toolbar select:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
+}
+
+.grid-header-container {
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    overflow: hidden;
+}
+
+.grid-header {
+    margin-right: 10px; /* Account for scrollbar width */
+    font-weight: 600;
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 1px 0;
+    min-width: min-content;
+    display: flex;
+}
+
+.grid-header .grid-cell {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+    color: var(--vscode-sideBarTitle-foreground);
+    padding: 2px 6px;
+}
+
+.grid-header .grid-cell:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.sort-indicator {
+    margin-left: 4px;
+    opacity: 0.7;
+    font-size: 0.8em;
+    color: var(--vscode-foreground);
+}
+
+.grid-body {
+    flex: 1;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--vscode-scrollbarSlider-background) transparent;
+    position: relative;
+    /* Improve rendering performance */
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    backface-visibility: hidden;
+    perspective: 1000;
+}
+
+.grid-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.grid-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.grid-body::-webkit-scrollbar-thumb {
+    background-color: var(--vscode-scrollbarSlider-background);
+    border-radius: 4px;
+}
+
+.grid-body::-webkit-scrollbar-thumb:hover {
+    background-color: var(--vscode-scrollbarSlider-hoverBackground);
+}
+
+.grid-row {
+    display: flex;
+    cursor: pointer;
+    min-height: 22px;
+    align-items: center;
+    position: relative;
+    color: var(--vscode-foreground);
+    min-width: min-content;
+    flex-wrap: nowrap;
+    /* Add transform-origin for smoother updates */
+    transform-origin: center center;
+}
+
+.grid-row:hover,
+.grid-row.selected {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.grid-row:active,
+.grid-row.selected:active {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+    transform: scale(0.999);
+}
+
+.grid-cell {
+    padding: 2px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+    position: relative;
+    flex: 0 0 auto;
+    line-height: 18px;
+    width: 0; /* Force cell to respect width and not grow */
+    min-width: 0; /* Allow content to be truncated */
+    transition: all 0.2s ease;
+}
+
+/* Add tooltip-like behavior for truncated cells */
+.grid-cell[data-truncated="true"] {
+    position: relative;
+}
+
+.grid-cell[data-truncated="true"]:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    z-index: 100;
+    background: var(--vscode-editor-background);
+    padding: 4px 8px;
+    border: 1px solid var(--vscode-focusBorder);
+    border-radius: 4px;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 500px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Remove horizontal borders between cells */
+.grid-cell:not(:last-child) {
+    border-right: none;
+}
+
+/* Style for time, status, size, and duration columns */
+[data-field="time"],
+[data-field="status"],
+[data-field="size"],
+[data-field="duration"] {
+    color: var(--vscode-descriptionForeground);
+}
+
+/* Add log icon to the first column, but not in header */
+.grid-body [data-field="user"] {
+    position: relative;
+    padding-left: 24px;  /* Space for icon */
+}
+
+.grid-body [data-field="user"]::before {
+    content: "⬤";  /* Solid circle as icon */
+    position: absolute;
+    left: 6px;
+    font-size: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    opacity: 0.4;
+    color: var(--vscode-testing-iconPassed); /* Default VS Code green color */
+}
+
+/* Style for downloading logs */
+.grid-body .grid-row[data-downloading="true"] [data-field="user"]::before {
+    color: var(--vscode-terminal-ansiYellow);
+    opacity: 0.8;
+}
+
+/* Style for read logs */
+.grid-row[data-read="true"] [data-field="user"]::before {
+    opacity: 0.4;
+    color: var(--vscode-foreground);
+}
+
+/* Style for read logs */
+.grid-row[data-read="true"][data-downloading="false"] [data-field="user"]::before {
+    opacity: 0.4;
+    color: var(--vscode-foreground);
+}
+
+/* Default state (unread and not downloading) */
+.grid-body .grid-row[data-downloading="false"][data-read="false"] [data-field="user"]::before {
+    opacity: 0.4;
+    color: var(--vscode-testing-iconPassed);
+}
+
+/* Align header with the text */
+.grid-header [data-field="user"] {
+    padding-left: 24px;
+}
+
+/* Column widths */
+[data-field="user"] {
+    width: 150px;
+    flex: 0 0 150px;
+}
+
+[data-field="time"] {
+    width: 160px;
+    flex: 0 0 160px;
+}
+
+[data-field="status"] {
+    width: 80px;
+    flex: 0 0 80px;
+}
+
+[data-field="size"] {
+    width: 80px;
+    flex: 0 0 80px;
+    text-align: right;
+}
+
+[data-field="size"] .size-unit {
+    display: inline-block;
+    min-width: 2.5em;
+    text-align: left;
+    padding-left: 2px;
+}
+
+[data-field="operation"] {
+    width: 400px;
+    flex: 0 0 400px;
+}
+
+[data-field="duration"] {
+    width: 90px;
+    flex: 0 0 90px;
+    text-align: right;
+}
+
+.resize-handle {
+    position: absolute;
+    right: -3px;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: col-resize;
+    z-index: 2;
+    transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+    background-color: var(--vscode-focusBorder);
+}
+
+.resizing {
+    cursor: col-resize;
+}
+
+.resizing .grid-cell {
+    transition: none !important;
+}
+
+.resizing-active {
+    background-color: var(--vscode-focusBorder);
+}
+
+.empty-message {
+    padding: 10px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+}
