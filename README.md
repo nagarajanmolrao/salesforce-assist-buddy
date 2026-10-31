@@ -1,6 +1,6 @@
 # Salesforce Assist Buddy
 
-Salesforce developer tools for VS Code: inspect Apex logs, manage user trace flags, and run saved SOQL queries across authenticated orgs.
+Salesforce developer tools for VS Code: inspect Apex logs, manage user trace flags, and run saved SOQL/SOSL queries across authenticated orgs.
 
 ## Tools and Views
 
@@ -9,7 +9,7 @@ Salesforce developer tools for VS Code: inspect Apex logs, manage user trace fla
 | [Log Viewer](#apex-log-workflow) | Browse recent logs, select multiple Operation types, and filter or sort the results. |
 | [Log Details](#log-details) | Inspect execution events, search log content, and expand method blocks. |
 | [Trace Flags](#trace-flags) | Find users and enable or disable their debug trace flags. |
-| [SOQL Query Runner](#soql-query-runner) | Select an org, run saved queries with parameters, and export searchable results as CSV. |
+| [Query Runner](#query-runner) | Select an org, run saved SOQL or SOSL queries with parameters, and export searchable results as CSV. |
 | [Experience Login URL](#experience-login-url) | Generate an Experience Cloud login-as URL from a contact email and network selection. |
 
 The screenshots below show the extension's webviews rendered with fictional sample data and a VS Code-style dark theme. They omit VS Code's surrounding tabs and title-bar actions; no live org data or credentials are shown.
@@ -17,8 +17,8 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) installed and available on PATH.
-- Authenticated Salesforce CLI orgs for the SOQL Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
+- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
 ## Install Locally
@@ -61,17 +61,19 @@ Log Viewer identifies the current user before querying, but sets up their trace 
 
 The trace-flag cleanup command removes expired flags for other users. Its existing command ID is `salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent`.
 
-## SOQL Query Runner
+## Query Runner
 
-Select **SOQL Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available. The list is cached for the editor session and refreshed only when requested. Queries run through a cached Salesforce Core connection for the selected username, independently of the default org used by Log Viewer.
+Select **Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available. The list is cached for the editor session and refreshed only when requested. Queries run through a cached Salesforce Core connection for the selected username, independently of the default org used by Log Viewer.
 
-![SOQL Query Runner showing a sample org selection, saved Account query, and text and number parameter inputs](https://i.postimg.cc/BQ3JN62b/soql-query-runner.png)
+![Query Runner showing a sample org selection, saved query, query type selector, and parameter inputs](https://i.postimg.cc/YGPJNWtF/soql-query-runner.png)
 
-Saved queries are stored under `.sfdx/salesforce-assist-buddy/queries.json` when `.sfdx` exists, or under `.sf/salesforce-assist-buddy/queries.json` when only `.sf` exists. If neither directory exists, `.sfdx/salesforce-assist-buddy/queries.json` is created. The file is created with an Accounts example the first time the editor opens; use **Open library** to edit it directly and **Reload library** to refresh the list. Query parameters use `{{parameterName}}` placeholders and are defined with a type in the saved query JSON; matching input controls appear in the editor. Text parameters can replace a complete literal (`Name = {{name}}`) or appear inside quotes (`Name LIKE '%{{brandName}}%'`).
+Saved queries are stored under `.sfdx/salesforce-assist-buddy/queries.json` when `.sfdx` exists, or under `.sf/salesforce-assist-buddy/queries.json` when only `.sf` exists. If neither directory exists, `.sfdx/salesforce-assist-buddy/queries.json` is created. The file is created with an Accounts example and a Contacts SOSL example the first time the editor opens; use **Open library** to edit it directly and **Reload library** to refresh the list.
+
+The query type dropdown lets you switch between **SOQL** and **SOSL** queries. Query parameters use `{{parameterName}}` placeholders and are defined with a type in the saved query JSON; matching input controls appear in the editor. Text parameters can replace a complete literal (`Name = {{name}}`) or appear inside quotes (`Name LIKE '%{{brandName}}%'`). For SOSL queries, the search term is used directly in the FIND clause.
 
 Query results are shown in a sortable table with global search and per-column filters. **Download CSV** exports the complete result set.
 
-![SOQL results showing fictional Account records, column filters, global search, and the CSV download action](https://i.postimg.cc/fTsM5LYk/soql-results.png)
+![Query results showing fictional records, column filters, global search, and the CSV download action](https://i.postimg.cc/ZBQ1PdJF/soql-results.png)
 
 ## Experience Login URL
 

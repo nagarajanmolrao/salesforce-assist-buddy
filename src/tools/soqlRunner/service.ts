@@ -4,17 +4,26 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AuthenticatedOrgService, OrgSelection } from '../../core/authenticatedOrgs';
 import { logger } from '../../core/logger';
-import { AuthenticatedOrg, buildSoql, formatCliErrorOutput, QueryTableData, resolveSalesforceDirectory, SavedQuery, toQueryTableData } from './queryData';
+import { AuthenticatedOrg, buildSoql, formatCliErrorOutput, QueryTableData, resolveSalesforceDirectory, SavedQuery, toQueryTableData, QueryType } from './queryData';
 
 const maximumQueryRows = 50000;
 
 const starterQueries: SavedQuery[] = [{
     id: 'accounts-by-name',
     name: 'Accounts by name',
-    soql: 'SELECT Id, Name, Type FROM Account WHERE Name LIKE {{namePattern}} ORDER BY Name LIMIT {{rowLimit}}',
+    query: 'SELECT Id, Name, Type FROM Account WHERE Name LIKE {{namePattern}} ORDER BY Name LIMIT {{rowLimit}}',
+    queryType: 'soql',
     parameters: [
         { name: 'namePattern', label: 'Name pattern', type: 'text', defaultValue: '%' },
         { name: 'rowLimit', label: 'Maximum rows', type: 'number', defaultValue: '100' }
+    ]
+}, {
+    id: 'contacts-by-name-sosl',
+    name: 'Contacts by name (SOSL)',
+    query: 'FIND {{searchTerm}} IN ALL FIELDS RETURNING Contact(Id, Name, Email, Account.Name)',
+    queryType: 'sosl',
+    parameters: [
+        { name: 'searchTerm', label: 'Search term', type: 'text', defaultValue: 'John' }
     ]
 }];
 
@@ -108,28 +117,45 @@ export class SoqlRunnerService {
                 throw new Error('Select an authenticated Salesforce org before running the query.');
             }
 
-            const soql = buildSoql(validateSavedQuery(query), values);
-            logger.info('SOQL Query Runner.query', 'Query started for the selected org');
-            const response = await logger.run('SOQL Query Runner.query', () => this.executeQuery(username, soql));
-            const records = response.records;
-            if (!Array.isArray(records)) throw new Error('Salesforce CLI returned an unexpected query response.');
-            if (!response.done) {
-                logger.warn('SOQL Query Runner.query', `Results reached the ${maximumQueryRows}-row fetch limit`);
+                        const validatedQuery = validateSavedQuery(query);
+                        const queryString = buildSoql(validatedQuery, values);
+                        logger.info('Query Runner.query', `${validatedQuery.queryType.toUpperCase()} query started for the selected org`);
+                        const response = await logger.run('Query Runner.query', () => this.executeQuery(username, queryString, validatedQuery.queryType));
+            
+                        let records: Record<string, unknown>[];
+                        if (validatedQuery.queryType === 'sosl') {
+                            // SOSL returns SearchResult with searchRecords
+                            const searchResult = response as { searchRecords: Record<string, unknown>[] };
+                            records = searchResult.searchRecords;
+                        } else {
+                            // SOQL returns QueryResult with records and done
+                            const queryResult = response as { records: Record<string, unknown>[]; done: boolean };
+                            records = queryResult.records;
+                            if (!queryResult.done) {
+                                logger.warn('Query Runner.query', `Results reached the ${maximumQueryRows}-row fetch limit`);
+                            }
+                        }
+            
+                        if (!Array.isArray(records)) throw new Error('Salesforce CLI returned an unexpected query response.');
+                        const result = toQueryTableData(records);
+                        logger.info('Query Runner.query', `${validatedQuery.queryType.toUpperCase()} query completed with ${records.length} rows`);
+                        return result;
+            } catch (error) {
+                const details = readableCliError(error, 'Query failed. Check the query and org access, then try again.');
+                logger.error('Query Runner.query', 'Query failed', new Error(details));
+                throw new Error(details);
             }
-            const result = toQueryTableData(records);
-            logger.info('SOQL Query Runner.query', `Query completed with ${records.length} rows`);
-            return result;
-        } catch (error) {
-            const details = readableCliError(error, 'SOQL query failed. Check the query and org access, then try again.');
-            logger.error('SOQL Query Runner.query', 'SOQL query failed', new Error(details));
-            throw new Error(details);
         }
-    }
 
-    private async executeQuery(username: string, soql: string) {
-        return this.orgService.run(username, async connection =>
-            await connection.query(soql, { autoFetch: true, maxFetch: maximumQueryRows }));
-    }
+        private async executeQuery(username: string, query: string, queryType: QueryType) {
+                    return this.orgService.run(username, async connection => {
+                        if (queryType === 'sosl') {
+                            return await connection.search(query);
+                        } else {
+                            return await connection.query(query, { autoFetch: true, maxFetch: maximumQueryRows });
+                        }
+                    });
+                }
 
     private async writeSavedQueries(queries: SavedQuery[]) {
         await fs.mkdir(path.dirname(this.queryFilePath), { recursive: true });
@@ -141,14 +167,18 @@ export class SoqlRunnerService {
 
 function validateSavedQuery(value: any): SavedQuery {
     if (!value || typeof value !== 'object' || typeof value.name !== 'string' || !value.name.trim() ||
-        typeof value.soql !== 'string' || !value.soql.trim() || typeof value.id !== 'string' || !value.id.trim()) {
-        throw new Error('Each saved query needs an ID, name, and SOQL statement.');
+        typeof value.query !== 'string' || !value.query.trim() || typeof value.id !== 'string' || !value.id.trim()) {
+        throw new Error('Each saved query needs an ID, name, and query statement.');
+    }
+    if (!['soql', 'sosl'].includes(value.queryType)) {
+        throw new Error(`Saved query "${value.name}" has an invalid query type. Must be 'soql' or 'sosl'.`);
     }
     if (!Array.isArray(value.parameters)) throw new Error(`Saved query "${value.name}" has an invalid parameter list.`);
     return {
         id: value.id,
         name: value.name.trim(),
-        soql: value.soql.trim(),
+        query: value.query.trim(),
+        queryType: value.queryType,
         parameters: value.parameters.map((parameter: any) => {
             if (!parameter || typeof parameter.name !== 'string' || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(parameter.name) ||
                 !['text', 'number', 'boolean', 'date', 'datetime'].includes(parameter.type)) {

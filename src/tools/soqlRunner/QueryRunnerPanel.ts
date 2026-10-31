@@ -6,16 +6,16 @@ import { logger } from '../../core/logger';
 import { SavedQuery } from './queryData';
 import { SoqlRunnerService } from './service';
 
-export class SoqlRunnerPanel implements vscode.Disposable {
-    private static readonly editors = new Set<SoqlRunnerPanel>();
+export class QueryRunnerPanel implements vscode.Disposable {
+    private static readonly editors = new Set<QueryRunnerPanel>();
     private readonly panel: vscode.WebviewPanel;
     private readonly service: SoqlRunnerService;
 
     constructor(context: vscode.ExtensionContext, private readonly onActivityChanged: () => void = () => {}) {
         this.service = new SoqlRunnerService(context);
         this.panel = vscode.window.createWebviewPanel(
-            'salesforceAssistBuddy.soqlRunner',
-            'SOQL Query Runner',
+            'salesforceAssistBuddy.queryRunner',
+            'Query Runner',
             vscode.ViewColumn.Active,
             {
                 enableScripts: true,
@@ -23,22 +23,22 @@ export class SoqlRunnerPanel implements vscode.Disposable {
                 localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'src', 'tools', 'soqlRunner')]
             }
         );
-        SoqlRunnerPanel.editors.add(this);
+        QueryRunnerPanel.editors.add(this);
         this.panel.onDidChangeViewState(() => this.onActivityChanged());
 
         const scriptUri = this.panel.webview.asWebviewUri(
-            vscode.Uri.joinPath(context.extensionUri, 'src', 'tools', 'soqlRunner', 'SoqlRunner.js')
+            vscode.Uri.joinPath(context.extensionUri, 'src', 'tools', 'soqlRunner', 'QueryRunner.js')
         );
         const styleUri = this.panel.webview.asWebviewUri(
-            vscode.Uri.joinPath(context.extensionUri, 'src', 'tools', 'soqlRunner', 'SoqlRunner.css')
+            vscode.Uri.joinPath(context.extensionUri, 'src', 'tools', 'soqlRunner', 'QueryRunner.css')
         );
         this.panel.webview.html = this.getHtml(context.extensionUri, scriptUri, styleUri);
         this.panel.webview.onDidReceiveMessage(message => this.handleMessage(message));
-        logger.info('SOQL Query Runner.panel', 'Query editor opened');
+        logger.info('Query Runner.panel', 'Query editor opened');
         this.panel.onDidDispose(() => {
-            SoqlRunnerPanel.editors.delete(this);
+            QueryRunnerPanel.editors.delete(this);
             this.onActivityChanged();
-            logger.info('SOQL Query Runner.panel', 'Query editor closed');
+            logger.info('Query Runner.panel', 'Query editor closed');
         });
     }
 
@@ -51,7 +51,7 @@ export class SoqlRunnerPanel implements vscode.Disposable {
     }
 
     private getHtml(extensionUri: vscode.Uri, scriptUri: vscode.Uri, styleUri: vscode.Uri): string {
-        const htmlPath = path.join(extensionUri.fsPath, 'src', 'tools', 'soqlRunner', 'SoqlRunner.html');
+        const htmlPath = path.join(extensionUri.fsPath, 'src', 'tools', 'soqlRunner', 'QueryRunner.html');
         let html = fs.readFileSync(htmlPath, 'utf8');
         const nonce = randomBytes(16).toString('base64');
         html = html.split('${cspSource}').join(this.panel.webview.cspSource);
@@ -77,7 +77,7 @@ export class SoqlRunnerPanel implements vscode.Disposable {
         } else if (message?.command === 'reloadLibrary') {
             await this.reloadLibrary();
         } else if (message?.command === 'diagnostic' && typeof message.message === 'string') {
-            logger.error('SOQL Query Runner.webview', message.message.slice(0, 4000));
+            logger.error('Query Runner.webview', message.message.slice(0, 4000));
         }
     }
 
@@ -85,7 +85,7 @@ export class SoqlRunnerPanel implements vscode.Disposable {
         try {
             const state = await this.service.getInitialState();
             if (state.orgs.length) {
-                logger.info('SOQL Query Runner.orgList', `Loaded ${state.orgs.length} authenticated orgs`);
+                logger.info('Query Runner.orgList', `Loaded ${state.orgs.length} authenticated orgs`);
             }
             await this.panel.webview.postMessage({ type: 'initialize', ...state, queryFile: this.service.savedQueriesFilePath });
         } catch (error) {
@@ -96,7 +96,7 @@ export class SoqlRunnerPanel implements vscode.Disposable {
     private async refreshOrgs() {
         try {
             const state = await this.service.listOrgs(true);
-            logger.info('SOQL Query Runner.orgList', `Refreshed ${state.orgs.length} authenticated orgs`);
+            logger.info('Query Runner.orgList', `Refreshed ${state.orgs.length} authenticated orgs`);
             await this.panel.webview.postMessage({ type: 'orgs', ...state });
         } catch (error) {
             this.sendError('orgs', error);
@@ -131,7 +131,7 @@ export class SoqlRunnerPanel implements vscode.Disposable {
     private async deleteQuery(id: string) {
         try {
             const answer = await vscode.window.showWarningMessage(
-                'Delete this saved SOQL query?',
+                'Delete this saved query?',
                 { modal: true },
                 'Delete Query'
             );
@@ -168,9 +168,9 @@ export class SoqlRunnerPanel implements vscode.Disposable {
             ? 'Query failed. See View > Output > Salesforce Assist Buddy for the full error details.'
             : details;
         if (operation === 'query') {
-            logger.debug('SOQL Query Runner.query', 'Query failure summary shown in editor; full details were logged.');
+            logger.debug('Query Runner.query', 'Query failure summary shown in editor; full details were logged.');
         } else {
-            logger.warn(`SOQL Query Runner.${operation}`, 'Operation failed; details shown in the editor.');
+            logger.warn(`Query Runner.${operation}`, 'Operation failed; details shown in the editor.');
         }
         void this.panel.webview.postMessage({ type: 'error', operation, message });
     }

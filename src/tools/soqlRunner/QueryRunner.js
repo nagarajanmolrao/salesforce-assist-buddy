@@ -2,9 +2,10 @@
     const vscode = acquireVsCodeApi();
     const byId = id => document.getElementById(id);
     const orgSelect = byId('org-select');
+    const queryTypeSelect = byId('query-type-select');
     const querySelect = byId('query-select');
     const queryNameInput = byId('query-name');
-    const soqlEditor = byId('soql-editor');
+    const queryEditor = byId('query-editor');
     const parameterFields = byId('parameter-fields');
     const queryStatus = byId('query-status');
     const runButton = byId('run-query');
@@ -25,6 +26,7 @@
     let pendingLibraryAction = '';
     const previousState = vscode.getState() || {};
     let selectedUsername = previousState.selectedUsername || '';
+    let selectedQueryType = previousState.selectedQueryType || 'soql';
 
     function reportError(stage, error) {
         const details = error instanceof Error ? error.stack || error.message : String(error);
@@ -42,9 +44,10 @@
     function saveState() {
         vscode.setState({
             selectedUsername,
-            selectedQueryId: activeQuery?.id || ''
-        });
-    }
+                selectedQueryType,
+                selectedQueryId: activeQuery?.id || ''
+            });
+        }
 
     function renderOrgs(defaultUsername = '') {
         orgSelect.replaceChildren();
@@ -70,19 +73,20 @@
         placeholder.value = '';
         placeholder.textContent = 'Select a saved query';
         querySelect.appendChild(placeholder);
-        for (const query of queries) {
-            const option = document.createElement('option');
-            option.value = query.id;
-            option.textContent = query.name;
-            querySelect.appendChild(option);
+            const filteredQueries = queries.filter(query => query.queryType === selectedQueryType);
+            for (const query of filteredQueries) {
+                const option = document.createElement('option');
+                option.value = query.id;
+                option.textContent = query.name;
+                querySelect.appendChild(option);
+            }
+            querySelect.value = selectedId;
         }
-        querySelect.value = selectedId;
-    }
 
-    function extractParameterNames(soql) {
+    function extractParameterNames(queryString) {
         const names = new Set();
         const pattern = /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g;
-        for (const match of soql.matchAll(pattern)) names.add(match[1]);
+            for (const match of queryString.matchAll(pattern)) names.add(match[1]);
         return [...names];
     }
 
@@ -100,7 +104,7 @@
         const saved = new Map((activeQuery?.parameters || []).map(parameter => [parameter.name, parameter]));
         parameterFields.replaceChildren();
 
-        for (const name of extractParameterNames(soqlEditor.value)) {
+        for (const name of extractParameterNames(queryEditor.value)) {
             const previous = existing.get(name) || saved.get(name) || {};
             const field = document.createElement('div');
             field.className = 'parameter';
@@ -170,21 +174,24 @@
         return {
             id: activeQuery?.id || 'unsaved-query',
             name: queryNameInput.value.trim() || 'Unsaved query',
-            soql: soqlEditor.value.trim(),
-            parameters
-        };
-    }
+                query: queryEditor.value.trim(),
+                queryType: queryTypeSelect.value,
+                parameters
+            };
+        }
 
     function selectQuery(query) {
         activeQuery = query || null;
         querySelect.value = query?.id || '';
         queryNameInput.value = query?.name || '';
-        soqlEditor.value = query?.soql || '';
-        parameterFields.replaceChildren();
-        renderParameters();
-        byId('delete-query').disabled = !query;
-        saveState();
-    }
+            queryEditor.value = query?.query || '';
+            queryTypeSelect.value = query?.queryType || 'soql';
+            selectedQueryType = query?.queryType || 'soql';
+            parameterFields.replaceChildren();
+            renderParameters();
+            byId('delete-query').disabled = !query;
+            saveState();
+        }
 
     function updateQueryLibrary(nextQueries, selectedId) {
         queries = nextQueries;
@@ -286,7 +293,7 @@
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = `soql-results-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+            anchor.download = `query-results-${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
         anchor.click();
         setTimeout(() => URL.revokeObjectURL(url), 0);
     }
@@ -301,11 +308,21 @@
         saveState();
     });
 
-    querySelect.addEventListener('change', () => {
-        selectQuery(queries.find(query => query.id === querySelect.value));
-    });
+        queryTypeSelect.addEventListener('change', () => {
+            selectedQueryType = queryTypeSelect.value;
+            saveState();
+            renderQueryOptions(activeQuery?.id || '');
+            const selected = queries.find(query => query.id === querySelect.value);
+            if (selected) {
+                selectQuery(selected);
+            }
+        });
 
-    soqlEditor.addEventListener('input', renderParameters);
+        querySelect.addEventListener('change', () => {
+            selectQuery(queries.find(query => query.id === querySelect.value));
+        });
+
+        queryEditor.addEventListener('input', renderParameters);
 
     byId('new-query').addEventListener('click', () => {
         querySelect.value = '';
@@ -315,8 +332,8 @@
 
     byId('save-query').addEventListener('click', () => {
         const query = createQuery();
-        if (!query.name || query.name === 'Unsaved query' || !query.soql) {
-            setStatus('Enter a query name and SOQL before saving.', 'error');
+            if (!query.name || query.name === 'Unsaved query' || !query.query) {
+                setStatus('Enter a query name and query before saving.', 'error');
             return;
         }
         if (!query.id || query.id === 'unsaved-query') {

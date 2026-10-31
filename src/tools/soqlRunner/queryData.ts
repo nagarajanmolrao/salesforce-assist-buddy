@@ -1,4 +1,5 @@
 export type QueryParameterType = 'text' | 'number' | 'boolean' | 'date' | 'datetime';
+export type QueryType = 'soql' | 'sosl';
 
 export interface QueryParameter {
     name: string;
@@ -10,7 +11,8 @@ export interface QueryParameter {
 export interface SavedQuery {
     id: string;
     name: string;
-    soql: string;
+    query: string;
+    queryType: QueryType;
     parameters: QueryParameter[];
 }
 
@@ -87,10 +89,10 @@ function formatParameterValue(parameter: QueryParameter, rawValue: unknown, insi
 }
 
 export function buildSoql(query: SavedQuery, values: Record<string, unknown>): string {
-    const soql = query.soql.trim();
-    if (!soql) throw new Error('Enter a SOQL query.');
+    const queryString = query.query.trim();
+    if (!queryString) throw new Error('Enter a query.');
 
-    const parameterNames = getParameterNames(soql);
+    const parameterNames = getParameterNames(queryString);
     const definitions = new Map(query.parameters.map(parameter => [parameter.name, parameter]));
     for (const name of parameterNames) {
         if (!definitions.has(name)) throw new Error(`Define a parameter for {{${name}}}.`);
@@ -99,10 +101,15 @@ export function buildSoql(query: SavedQuery, values: Record<string, unknown>): s
     return parameterNames.reduce((text, name) => {
         const token = new RegExp(`\\{\\{\\s*${name}\\s*\\}\\}`, 'g');
         return text.replace(token, (_match: string, offset: number) => {
+            const parameter = definitions.get(name)!;
+            // For SOSL queries, the searchTerm parameter is wrapped in braces, not quotes
+            if (query.queryType === 'sosl' && name === 'searchTerm') {
+                return `{${String(values[name] ?? '').trim()}}`;
+            }
             const insideLiteral = isInsideSingleQuotedLiteral(text, offset);
-            return formatParameterValue(definitions.get(name)!, values[name], insideLiteral);
+            return formatParameterValue(parameter, values[name], insideLiteral);
         });
-    }, soql);
+    }, queryString);
 }
 
 export function formatCliErrorOutput(stdout = '', stderr = ''): string | undefined {

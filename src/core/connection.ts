@@ -5,11 +5,59 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import { logger } from './logger';
 
+// Minimum required sf CLI version that supports all commands used by this extension
+const MIN_SF_VERSION = '2.87.0';
+
 let currentOrgUsername: string | undefined;
 let currentConnection: Connection | undefined;
 
+// Check sf CLI version and ensure it meets minimum requirements
+async function checkSfVersion(): Promise<string> {
+    const { stdout } = await executeCommand('sf version');
+    const versionMatch = stdout.match(/@salesforce\/cli\/(\d+\.\d+\.\d+)/);
+    if (!versionMatch) {
+        throw new Error('Could not determine sf CLI version. Output: ' + stdout);
+    }
+    const version = versionMatch[1];
+    
+    if (!versionSatisfies(version, MIN_SF_VERSION)) {
+        const errorMsg = `Salesforce CLI version ${version} is installed, but version ${MIN_SF_VERSION} or higher is required. ` +
+            `Please update sf CLI by running: sf update`;
+        logger.error('Connection', errorMsg);
+        vscode.window.showErrorMessage(errorMsg, { modal: true });
+        throw new Error(errorMsg);
+    }
+    
+    logger.info('Connection', `sf CLI version ${version} satisfies minimum requirement ${MIN_SF_VERSION}`);
+    return version;
+}
+
+// Simple semver comparison (major.minor.patch)
+function versionSatisfies(current: string, required: string): boolean {
+    const currentParts = current.split('.').map(Number);
+    const requiredParts = required.split('.').map(Number);
+    
+    for (let i = 0; i < 3; i++) {
+        if (currentParts[i] > requiredParts[i]) return true;
+        if (currentParts[i] < requiredParts[i]) return false;
+    }
+    return true; // versions are equal
+}
+
 // Get the connection to the Salesforce org.
 export async function getConnection(forceRefresh = false): Promise<Connection> {
+    // Check sf CLI version on first connection attempt
+    if (!currentConnection) {
+        try {
+            await checkSfVersion();
+        } catch (error: any) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error('Connection', 'Salesforce connection initialization stopped', error);
+            vscode.window.showErrorMessage(`Failed to connect to Salesforce: ${errorMessage}`);
+            throw error;
+        }
+    }
+
     const newOrgUsername = await getCurrentOrgFromConfig();
     if (!newOrgUsername) {
         logger.warn('Connection', 'No target org configured; connection cannot be initialized');
@@ -26,7 +74,6 @@ export async function getConnection(forceRefresh = false): Promise<Connection> {
             vscode.window.showErrorMessage(`Failed to connect to Salesforce: ${errorMessage}`);
             throw error;
         }
-
     }
 
     return currentConnection!;

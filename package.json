@@ -2,7 +2,7 @@
   "name": "salesforce-assist-buddy",
   "displayName": "Salesforce Assist Buddy",
   "description": "View and manage Salesforce developer logs with auto-refresh and filtering capabilities",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "Anmol",
   "author": {
     "name": "Anmol"
