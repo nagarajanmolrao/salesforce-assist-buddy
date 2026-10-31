@@ -176,6 +176,7 @@ test('panel waits for client readiness before its single initial query', async (
 test('connection always uses the explicit access-token command instead of org display credentials', async () => {
     for (const tokenInDisplay of [true, false]) {
         const commands = [];
+        let versionReturned = false;
         const module = loadModule('../src/core/connection.ts', {
             jsforce: { Connection: class { constructor(options) { this.options = options; } } },
             vscode: { workspace: { workspaceFolders: [{ uri: { fsPath: '/workspace' } }] }, window: { showErrorMessage() {} } },
@@ -183,6 +184,11 @@ test('connection always uses the explicit access-token command instead of org di
             path,
             child_process: { exec(command, callback) {
                 commands.push(command);
+                if (command === 'sf version' && !versionReturned) {
+                    versionReturned = true;
+                    callback(null, '@salesforce/cli/2.156.8 darwin-arm64 node-v24.22.1', '');
+                    return;
+                }
                 callback(null, JSON.stringify({ result: command.includes('org display')
                     ? { instanceUrl: 'https://example.test', accessToken: tokenInDisplay ? 'invalid-display-token' : undefined }
                     : { accessToken: 'test-token' } }), '');
@@ -191,9 +197,9 @@ test('connection always uses the explicit access-token command instead of org di
         });
         const connection = await module.getConnection();
         assert.equal(connection.options.accessToken, 'test-token');
-        assert.equal(commands.length, 2);
+        assert.equal(commands.length, 3); // version + org display + auth show-access-token
         await module.getConnection();
-        assert.equal(commands.length, 2);
+        assert.equal(commands.length, 3); // cached connection, no new commands
         let attempts = 0;
         const provider = { connection, async updateConnection(updated) { this.connection = updated; } };
         const result = await module.retryOnSessionExpire(async activeConnection => {
@@ -209,7 +215,7 @@ test('connection always uses the explicit access-token command instead of org di
         }, provider);
         assert.equal(result, 'recovered');
         assert.equal(attempts, 2);
-        assert.equal(commands.length, 4);
+        assert.equal(commands.length, 5); // version + 2 org display + 2 auth show-access-token
         assert.notEqual(provider.connection, connection);
     }
 });

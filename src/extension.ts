@@ -8,7 +8,7 @@ import { ApexLogDetails } from './tools/logViewer/details/ApexLogDetails';
 import { logger, outputChannel, startLogRetention } from './core/logger';
 import { commandId, extensionIds, getConfiguration } from './core/extensionIdentity';
 import { configureLogViewer, disposeLogViewer, getExistingLogDataProvider, getLogDataProvider, openLog } from './tools/logViewer/service';
-import { SoqlRunnerPanel } from './tools/soqlRunner/SoqlRunnerPanel';
+import { QueryRunnerPanel } from './tools/soqlRunner/QueryRunnerPanel';
 import { ExperienceLoginPanel } from './tools/experienceLogin/ExperienceLoginPanel';
 import { ToolId } from './tools/registry';
 
@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
         // Use getLogDataProvider to ensure provider is initialized
         const provider = new ApexLogPanelProvider(context.extensionUri, await getLogDataProvider(), (toolId: ToolId) => {
             if (toolId === 'soql-runner') {
-                context.subscriptions.push(new SoqlRunnerPanel(context));
+                        context.subscriptions.push(new QueryRunnerPanel(context));
             } else if (toolId === 'experience-login') {
                 context.subscriptions.push(new ExperienceLoginPanel(context));
             }

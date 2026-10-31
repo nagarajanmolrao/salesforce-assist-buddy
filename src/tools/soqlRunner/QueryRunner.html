@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${cspSource} data:; style-src ${cspSource}; script-src 'nonce-${nonce}' ${cspSource};">
-    <title>SOQL Query Runner</title>
+    <title>Query Runner</title>
     <link rel="stylesheet" href="${styleUri}">
 </head>
 <body>
@@ -15,6 +15,13 @@
                 <select id="org-select" aria-label="Salesforce org"></select>
             </label>
             <button id="refresh-orgs" type="button" title="Refresh authenticated orgs">Refresh orgs</button>
+            <label class="control-group query-type-control">
+                <span>Query type</span>
+                <select id="query-type-select" aria-label="Query type">
+                    <option value="soql">SOQL</option>
+                    <option value="sosl">SOSL</option>
+                </select>
+            </label>
             <label class="control-group query-control">
                 <span>Saved query</span>
                 <select id="query-select" aria-label="Saved query"></select>
@@ -23,7 +30,7 @@
             <button id="open-library" type="button">Open library</button>
         </header>
 
-        <section class="query-section" aria-label="SOQL query">
+        <section class="query-section" aria-label="Query">
             <div class="query-heading">
                 <label class="query-name-control">
                     <span>Query name</span>
@@ -35,8 +42,8 @@
                     <button id="delete-query" type="button" class="danger" disabled>Delete</button>
                 </div>
             </div>
-            <label class="editor-label" for="soql-editor">SOQL</label>
-            <textarea id="soql-editor" spellcheck="false" aria-label="SOQL query"></textarea>
+            <label class="editor-label" for="query-editor">Query</label>
+            <textarea id="query-editor" spellcheck="false" aria-label="SOQL or SOSL query"></textarea>
             <div id="parameter-fields" class="parameter-fields"></div>
             <div class="run-row">
                 <button id="run-query" type="button" class="primary">Run query</button>
