@@ -324,7 +324,7 @@ test('runtime identity matches all manifest commands, menus, views, and configur
     const { extensionIds, commandId } = loadIdentity();
     const manifest = JSON.parse(readFileSync(path.join(__dirname, '../package.json'), 'utf8'));
     assert.equal(manifest.name, extensionIds.name);
-    assert.equal(manifest.version, '1.0.0');
+    assert.equal(manifest.version, '1.1.0');
     assert.equal(manifest.license, 'GPL-3.0-only');
     assert.equal(manifest.contributes.viewsContainers.panel[0].id, extensionIds.name);
     assert.equal(manifest.contributes.views[extensionIds.name][0].id, extensionIds.logView);

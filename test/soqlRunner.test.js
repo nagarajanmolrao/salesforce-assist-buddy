@@ -131,7 +131,8 @@ test('substitutes typed parameters and escapes SOQL string literals', () => {
     const query = {
         id: 'query-1',
         name: 'Test',
-        soql: 'SELECT Id FROM Account WHERE Name LIKE {{name}} AND CreatedDate >= {{startDate}} LIMIT {{rowLimit}}',
+        query: 'SELECT Id FROM Account WHERE Name LIKE {{name}} AND CreatedDate >= {{startDate}} LIMIT {{rowLimit}}',
+        queryType: 'soql',
         parameters: [
             { name: 'name', label: 'Name', type: 'text' },
             { name: 'startDate', label: 'Start date', type: 'date' },
@@ -146,7 +147,8 @@ test('substitutes text placeholders inside quoted LIKE patterns without adding q
     const query = {
         id: 'brand-query',
         name: 'Cases by insurer',
-        soql: "SELECT Claim_Number__c, eFNOL_policy_number__r.CompanyName__c, LastModifiedDate FROM Case WHERE eFNOL_policy_number__r.CompanyName__c LIKE '%{{brandName}}%' ORDER BY LastModifiedDate DESC LIMIT 200",
+        query: "SELECT Claim_Number__c, eFNOL_policy_number__r.CompanyName__c, LastModifiedDate FROM Case WHERE eFNOL_policy_number__r.CompanyName__c LIKE '%{{brandName}}%' ORDER BY LastModifiedDate DESC LIMIT 200",
+        queryType: 'soql',
         parameters: [{ name: 'brandName', label: 'Brand name', type: 'text' }]
     };
     assert.equal(
@@ -156,13 +158,13 @@ test('substitutes text placeholders inside quoted LIKE patterns without adding q
 });
 
 test('rejects undefined, missing, invalid numeric, and invalid calendar parameters', () => {
-    const base = { id: 'query', name: 'Test', soql: 'SELECT Id FROM Account WHERE Name = {{name}}', parameters: [] };
+    const base = { id: 'query', name: 'Test', query: 'SELECT Id FROM Account WHERE Name = {{name}}', queryType: 'soql', parameters: [] };
     assert.throws(() => queryData.buildSoql(base, {}), /Define a parameter/);
     const query = { ...base, parameters: [{ name: 'name', label: 'Name', type: 'text' }] };
     assert.throws(() => queryData.buildSoql(query, {}), /Enter a value/);
-    const numeric = { ...base, soql: 'SELECT Id FROM Account LIMIT {{count}}', parameters: [{ name: 'count', label: 'Count', type: 'number' }] };
+    const numeric = { ...base, query: 'SELECT Id FROM Account LIMIT {{count}}', parameters: [{ name: 'count', label: 'Count', type: 'number' }] };
     assert.throws(() => queryData.buildSoql(numeric, { count: 'many' }), /must be a number/);
-    const date = { ...base, soql: 'SELECT Id FROM Account WHERE CreatedDate >= {{date}}', parameters: [{ name: 'date', label: 'Date', type: 'date' }] };
+    const date = { ...base, query: 'SELECT Id FROM Account WHERE CreatedDate >= {{date}}', parameters: [{ name: 'date', label: 'Date', type: 'date' }] };
     assert.throws(() => queryData.buildSoql(date, { date: '2026-02-31' }), /valid date/);
 });
 
@@ -170,7 +172,7 @@ test('caches org discovery and a connection for the explicitly selected username
     const { service: serviceModule, cliCalls, orgSelections, queryCalls } = loadService();
     const extensionContext = { globalStorageUri: { fsPath: path.join(os.tmpdir(), 'soql-runner-test-storage') } };
     const service = new serviceModule.SoqlRunnerService(extensionContext);
-    const query = { id: 'accounts', name: 'Accounts', soql: 'SELECT Id FROM Account LIMIT 10', parameters: [] };
+    const query = { id: 'accounts', name: 'Accounts', query: 'SELECT Id FROM Account LIMIT 10', queryType: 'soql', parameters: [] };
 
     await service.listOrgs();
     await service.listOrgs();
@@ -190,7 +192,7 @@ test('caches org discovery and a connection for the explicitly selected username
 test('shared org connections stay isolated when switching between authenticated users', async () => {
     const { service: serviceModule, cliCalls, orgSelections, queryCalls } = loadService();
     const service = new serviceModule.SoqlRunnerService({ globalStorageUri: { fsPath: '/storage' } });
-    const query = { id: 'accounts', name: 'Accounts', soql: 'SELECT Id FROM Account LIMIT 1', parameters: [] };
+    const query = { id: 'accounts', name: 'Accounts', query: 'SELECT Id FROM Account LIMIT 1', queryType: 'soql', parameters: [] };
     await service.runQuery('qa@example.test', query, {});
     await service.runQuery('other@example.test', query, {});
     await service.runQuery('qa@example.test', query, {});

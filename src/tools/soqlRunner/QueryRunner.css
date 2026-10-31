@@ -69,6 +69,14 @@ main {
     width: 100%;
 }
 
+.query-type-control {
+    min-width: 120px;
+}
+
+.query-type-control select {
+    width: 100%;
+}
+
 button {
     min-height: 30px;
     padding: 4px 10px;
@@ -133,7 +141,7 @@ button.danger {
     color: var(--vscode-descriptionForeground);
 }
 
-#soql-editor {
+#query-editor {
     display: block;
     width: 100%;
     min-height: 132px;

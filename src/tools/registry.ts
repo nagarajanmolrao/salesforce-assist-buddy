@@ -1,6 +1,6 @@
 export const toolRegistry = [
     { id: 'log-viewer', label: 'Log Viewer', behavior: 'select' },
-    { id: 'soql-runner', label: 'SOQL Query Runner', behavior: 'open-editor' },
+    { id: 'soql-runner', label: 'Query Runner', behavior: 'open-editor' },
     { id: 'experience-login', label: 'Experience Login URL', behavior: 'open-editor' }
 ] as const;
 
