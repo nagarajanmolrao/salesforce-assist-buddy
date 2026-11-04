@@ -1,5 +1,23 @@
 # Change Log
 
+## [1.2.0] - 2026-10-31
+
+### Features
+- **Experience Login URL** - Added browser selection dropdown with common browsers (Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, Arc)
+- **Incognito/Private Mode Toggle** - Choose whether to open the login URL in incognito/private mode or normal mode
+  - When enabled: Opens the session-bearing URL in an incognito/private window of the selected browser
+  - When disabled: Generates a URL without the session ID and opens it in a normal browser window
+- URL handling updated to support both modes with appropriate browser launch commands
+
+### Changed
+- Updated Experience Login URL webview with new browser selection controls
+
+### Log Viewer
+- **Log Details opens by default** - Clicking a log now opens the Log Details editor webview instead of a raw `.log` text file
+- **Persistent column widths** - Column width adjustments in the Log Viewer grid are saved and restored across reloads
+- **Full debug content** - Long debug statements with serialized JSON now wrap in the Log Details table and show the full content on hover
+- **Faster initialization** - Logs are pulled immediately when the provider initializes and when switching orgs, without waiting for panel visibility
+
 ## [1.1.0] - 2026-10-30
 
 ### Features
