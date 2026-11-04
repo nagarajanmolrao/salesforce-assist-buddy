@@ -91,7 +91,8 @@ export class LogDataProvider implements vscode.Disposable {
                 void logger.run('Provider.initializeTraceFlag', () => ensureTraceFlag(this.connection, this.currentUserId!))
                     .catch(error => logger.error('Provider.initializeTraceFlag', 'Trace flag setup failed; existing logs remain available', error));
             }
-            // Do NOT call refreshLogs here or anywhere except when panel is visible.
+            // Pull logs as soon as the provider is initialized, not only when the panel becomes visible.
+            await this.refreshLogs(true, false);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.error('Provider.initialize', 'Initialization incomplete; trace flag may not be active', error);
@@ -399,6 +400,8 @@ export class LogDataProvider implements vscode.Disposable {
             const config = getConfiguration();
             await config.update('currentUserOnly', false, vscode.ConfigurationTarget.Global);
         }
+        // Pull logs immediately after switching orgs so the new org's logs appear right away.
+        await this.refreshLogs(true, false);
 
         // Refresh logs using the new connection.
         await this.refreshLogs(true, false);

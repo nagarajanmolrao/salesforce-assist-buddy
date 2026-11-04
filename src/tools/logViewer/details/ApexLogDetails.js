@@ -238,6 +238,7 @@ class ApexLogDetails {
                 const cell = document.createElement('div');
                 cell.className = 'log-cell';
                 cell.textContent = text || '';
+                cell.title = text || ''; // Full content on hover for truncated cells
                 cell.style.width = this.COLUMN_WIDTHS[colIndex + 1];
 
                 // Details column (index 3) gets indentation

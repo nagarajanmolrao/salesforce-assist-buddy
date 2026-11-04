@@ -81,12 +81,14 @@
         toolSelector.value = activeToolId;
     }
 
-    // On load, always clear any cached data to ensure only fresh logs are shown
+    // On load, clear cached log data but preserve column widths and other UI state.
     try {
+        const currentState = vscode.getState() || {};
+        const existingColumnWidths = currentState.columnWidths || [];
         vscode.setState({
             data: [],
-            columnWidths: Array.from(columnWidths.entries()),
-            sortConfig,
+            columnWidths: existingColumnWidths,
+            sortConfig: currentState.sortConfig || { field: null, ascending: true },
             readLogIds: Array.from(readLogIds),
             activeToolId
         });
