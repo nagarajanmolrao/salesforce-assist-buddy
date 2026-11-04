@@ -112,7 +112,6 @@ function createConfigWatcher(configPath: string): vscode.FileSystemWatcher {
                         const newConnection = await getConnection();
                         await logDataProvider!.updateConnection(newConnection);
                         progress.report({ message: 'Refreshing logs...' });
-                        await new Promise(res => setTimeout(res, 300));
                     });
                     logger.info('OrgChange', 'Connection updated and logs refreshed');
                     // Send orgChanged message to webview to close search bar

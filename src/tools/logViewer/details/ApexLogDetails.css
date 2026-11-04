@@ -199,11 +199,12 @@ body, html {
     padding: 0 8px;
     line-height: var(--row-height);
     border-right: 1px solid transparent;
-    white-space: pre;
+    white-space: pre-wrap;           /* Allow wrapping for long JSON/multiline content */
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
     align-items: center;
+    overflow-y: hidden;              /* Keep height fixed */
 }
 
 /* Vertical grid lines on hover or always? Let's keep it clean, no vertical lines by default */

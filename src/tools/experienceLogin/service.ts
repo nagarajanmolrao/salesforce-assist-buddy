@@ -15,8 +15,14 @@ export interface ExperienceContactMatch {
 
 function validateEmail(email: string): string {
     const normalizedEmail = email.trim();
-    if (normalizedEmail.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-        throw new Error('Enter a valid contact email address.');
+    if (normalizedEmail.length === 0) {
+        throw new Error('Enter a contact email address.');
+    }
+    if (/\s/.test(normalizedEmail)) {
+        throw new Error('Email must not contain spaces.');
+    }
+    if (normalizedEmail.length > 254) {
+        throw new Error('Email is too long (max 254 characters).');
     }
     return normalizedEmail;
 }
@@ -31,7 +37,8 @@ export function buildExperienceLoginUrl(
     organizationId: string,
     networkId: string,
     userId: string,
-    contactId: string
+    contactId: string,
+    includeSessionId = true
 ): string {
     const domain = new URL(instanceUrl);
     if (domain.protocol !== 'https:' || domain.username || domain.password) {
@@ -49,7 +56,9 @@ export function buildExperienceLoginUrl(
     loginAs.searchParams.set('sunetworkuserid', userId);
 
     const frontdoor = new URL('/secur/frontdoor.jsp', domain.origin);
-    frontdoor.searchParams.set('sid', accessToken);
+    if (includeSessionId) {
+        frontdoor.searchParams.set('sid', accessToken);
+    }
     frontdoor.searchParams.set('retURL', loginAs.toString());
     return frontdoor.toString();
 }
@@ -62,11 +71,19 @@ export class ExperienceLoginService {
     }
 
     public async listNetworks(username: string): Promise<{ org: string; networks: ExperienceNetwork[] }> {
-        const result = await this.orgService.run(username, async connection =>
-            await connection.query<{ Id: string; Name: string }>('SELECT Id, Name FROM Network ORDER BY Name').autoFetch(true).maxFetch(10000)
-        );
-        if (!result.done) throw new Error('The network list exceeded 10,000 records. Contact your Salesforce administrator.');
-        return { org: username, networks: result.records.map(network => ({ id: network.Id, name: network.Name })) };
+        try {
+            const result = await this.orgService.run(username, async connection =>
+                await connection.query<{ Id: string; Name: string }>('SELECT Id, Name FROM Network ORDER BY Name').autoFetch(true).maxFetch(10000)
+            );
+            if (!result.done) throw new Error('The network list exceeded 10,000 records. Contact your Salesforce administrator.');
+            return { org: username, networks: result.records.map(network => ({ id: network.Id, name: network.Name })) };
+        } catch (error) {
+            const errorCode = (error as { errorCode?: string })?.errorCode;
+            if (errorCode === 'INVALID_TYPE' || String(error).includes('sObject type \'Network\' is not supported')) {
+                throw new Error('Experience Cloud networks are not available for this org. This org may not have Experience Cloud enabled.');
+            }
+            throw error;
+        }
     }
 
     public async findContacts(
@@ -113,7 +130,7 @@ export class ExperienceLoginService {
         });
     }
 
-    public async generate(username: string, email: string, networkId: string, contactId: string, userId: string): Promise<string> {
+    public async generate(username: string, email: string, networkId: string, contactId: string, userId: string): Promise<{ url: string; urlWithoutSession: string }> {
         const normalizedEmail = validateEmail(email);
         if (!/^0DB[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(networkId)) throw new Error('Select an Experience Cloud network.');
         if (!/^003[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(contactId) ||
@@ -134,9 +151,14 @@ export class ExperienceLoginService {
             }
             const organization = organizations.records[0] as { Id: string } | undefined;
             if (!organization) throw new Error('Could not determine the Salesforce organization.');
-            return buildExperienceLoginUrl(
-                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId
+            
+            const url = buildExperienceLoginUrl(
+                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId, true
             );
+            const urlWithoutSession = buildExperienceLoginUrl(
+                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId, false
+            );
+            return { url, urlWithoutSession };
         });
     }
 }

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { LogDataProvider } from './ApexLogDataProvider';
 import { ApexLog } from './ApexLogWrapper';
+import { ApexLogDetails } from './details/ApexLogDetails';
 import { getConnection, retryOnSessionExpire } from '../../core/connection';
 import { logger } from '../../core/logger';
 import { getConfiguration } from '../../core/extensionIdentity';
@@ -67,7 +68,11 @@ export async function openLog(data: { id: string }) {
             Request: result.Request ?? ''
         }, provider.connection);
 
-        await provider.logFileManager.showLog(log);
+        // Open by default in the Log Details editor view instead of a raw .log text file.
+        if (!extensionContext) {
+            throw new Error('Log Viewer has not been initialized');
+        }
+        await ApexLogDetails.showLogDetailsByLog(log, extensionContext.extensionUri);
         getExistingLogDataProvider()?.markLogAsOpened(log.id);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

@@ -11,6 +11,8 @@
     const refresh = document.getElementById('refresh');
     const result = document.getElementById('result');
     const status = document.getElementById('status');
+    const browserSelect = document.getElementById('browser-select');
+    const incognitoToggle = document.getElementById('incognito-toggle');
     let contactMatches = [];
     let busy = true;
     let networksReady = false;
@@ -80,13 +82,14 @@
         clearContacts();
     });
     findContacts.addEventListener('click', () => {
-        if (!email.reportValidity()) return;
-        invalidate();
-        clearContacts();
-        setBusy(true);
-        status.textContent = 'Finding matching contacts and active Experience users...';
-        vscode.postMessage({ command: 'findContacts', username: selectedUsername, email: email.value.trim() });
-    });
+            const emailValue = email.value.trim();
+            if (emailValue.length === 0 || /\s/.test(emailValue)) return;
+            invalidate();
+            clearContacts();
+            setBusy(true);
+            status.textContent = 'Finding matching contacts and active Experience users...';
+            vscode.postMessage({ command: 'findContacts', username: selectedUsername, email: emailValue });
+        });
     contact.addEventListener('change', () => {
         invalidate();
         contact.title = contact.selectedOptions[0]?.textContent || '';
@@ -115,7 +118,11 @@
         });
     });
     document.getElementById('copy').addEventListener('click', () => vscode.postMessage({ command: 'copy' }));
-    document.getElementById('open').addEventListener('click', () => vscode.postMessage({ command: 'open' }));
+    document.getElementById('open').addEventListener('click', () => {
+        const browser = browserSelect.value;
+        const incognito = incognitoToggle.checked;
+        vscode.postMessage({ command: 'open', browser, incognito });
+    });
 
     window.addEventListener('message', event => {
         const message = event.data;

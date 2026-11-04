@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { logger } from '../../../core/logger';
 import { commandId, extensionIds } from '../../../core/extensionIdentity';
+import { ApexLog } from '../ApexLogWrapper';
 
 export class ApexLogDetails {
     public static registerCommand(context: vscode.ExtensionContext) {
@@ -22,6 +23,11 @@ export class ApexLogDetails {
             }
         });
         context.subscriptions.push(disposable);
+    }
+
+    public static async showLogDetailsByLog(log: ApexLog, extensionUri: vscode.Uri) {
+        const logBody = (await logger.run(`LogDetails.download:${log.id}`, () => log.getBody())) as string;
+        await ApexLogDetails.showLogDetailsWebview(logBody, `ApexLog ${log.id}`, extensionUri);
     }
 
     public static async showLogDetailsWebview(logContent: string, fileName: string, extensionUri: vscode.Uri) {
