@@ -11,6 +11,8 @@
 
 ### Changed
 - Updated Experience Login URL webview with new browser selection controls
+- **Network sObject error handling** - When an org does not support Experience Cloud, `listNetworks()` now shows a friendly message instead of the raw `sObject type 'Network' is not supported` error
+- **Email validation relaxed** - Backend `validateEmail()` now only checks for non-empty, no-spaces, and max length; partial email lookups are supported via `LIKE` in the SOQL query
 
 ### Log Viewer
 - **Log Details opens by default** - Clicking a log now opens the Log Details editor webview instead of a raw `.log` text file

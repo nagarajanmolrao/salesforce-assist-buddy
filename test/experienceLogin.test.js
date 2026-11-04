@@ -170,7 +170,8 @@ test('rejects invalid inputs and unauthenticated orgs', async () => {
     const module = loadService();
     const service = new module.ExperienceLoginService();
     await service.listNetworks('admin@example.test');
-    await assert.rejects(service.generate('admin@example.test', 'not-an-email', ids.network, ids.contact, ids.user), /valid contact email/);
+    await assert.rejects(service.generate('admin@example.test', '', ids.network, ids.contact, ids.user), /Enter a contact email/);
+    await assert.rejects(service.generate('admin@example.test', 'has space@example.test', ids.network, ids.contact, ids.user), /spaces/);
     await assert.rejects(service.generate('admin@example.test', 'person@example.test', 'bad-id', ids.contact, ids.user), /Select an Experience/);
     await assert.rejects(service.generate('unknown@example.test', 'person@example.test', ids.network, ids.contact, ids.user), /authenticated Salesforce org/);
 });
