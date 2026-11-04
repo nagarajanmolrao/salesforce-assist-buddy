@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.2.0] - 2026-10-31
+## [1.2.0] - 2026-11-04
 
 ### Features
 - **Experience Login URL** - Added browser selection dropdown with common browsers (Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, Arc)

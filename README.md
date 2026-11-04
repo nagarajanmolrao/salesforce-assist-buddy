@@ -49,19 +49,27 @@ Open a downloaded `.log` file and select **Log Details** from the editor title b
 
 ![Log Details showing sample execution events, an expanded method block, and debug messages](./docs/screenshots/log-details.png)
 
+## Apex Log Workflow
+
+See the [Log Viewer user guide](./docs/log-viewer.md) for step-by-step instructions.
+
+Log Viewer filters and title-bar actions follow the panel's selected tool and visibility. Opening Query Runner or Experience Login in an editor leaves the panel picker on Log Viewer, so its controls remain available. Focusing a separate editor does not hide them or change the org or trace flags.
+
+![Log Viewer showing sample users, operations, log durations, and three selected log types](./screenshots/log-viewer.png)
+
+## Log Details
+
+See the [Log Details user guide](./docs/log-details.md) for step-by-step instructions.
+
+![Log Details showing sample execution events, an expanded method block, and debug messages](./screenshots/log-details.png)
+
 ## Trace Flags
 
-The flag-icon command, **Set TraceFlag for User**, opens a searchable list of up to 100 active users. Typing any part of a name or a username prefix queries the org after a 300 ms pause rather than downloading every user.
-
-The person-add command, **Set TraceFlag by Username or Email**, first prompts for a keyword. Press Enter to search using `Username LIKE '%keyword%' OR Email LIKE '%keyword%'`, then choose a matching user. Results are limited to 100 users; narrow the keyword when necessary.
-
-Both commands exclude the current user from the picker and check trace-flag status only for displayed users. Choosing a user enables their trace flag, or disables it when an active flag already exists. Enabled flags are renewed automatically. The current user's trace flag is initialized separately.
-
-Log Viewer identifies the current user before querying, but sets up their trace flag in the background so existing logs can appear without waiting for trace-flag creation. Initial log retrieval starts once the webview is ready.
-
-The trace-flag cleanup command removes expired flags for other users. Its existing command ID is `salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent`.
+See the [Trace Flags user guide](./docs/trace-flags.md) for step-by-step instructions.
 
 ## Query Runner
+
+See the [Query Runner user guide](./docs/query-runner.md) for step-by-step instructions.
 
 Select **Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available. The list is cached for the editor session and refreshed only when requested. Queries run through a cached Salesforce Core connection for the selected username, independently of the default org used by Log Viewer.
 
@@ -76,6 +84,8 @@ Query results are shown in a sortable table with global search and per-column fi
 ![Query results showing fictional records, column filters, global search, and the CSV download action](./docs/screenshots/sosl-query-runner-with-results.png)
 
 ## Experience Login URL
+
+See the [Experience Login user guide](./docs/experience-login.md) for step-by-step instructions.
 
 Select **Experience Login URL** from the tool dropdown to open its editor. Choose an authenticated **Salesforce org**, enter the **Contact email**, and choose **Find contacts**. Select a matching **Contact / Experience user**, choose an **Experience network** loaded from that org, and select **Generate login URL**.
 
@@ -123,7 +133,7 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 
 ## Repository Identity
 
-- Extension: `Anmol.salesforce-assist-buddy`.
+- Extension: `bill.salesforce-assist-buddy`.
 - Version: `1.2.0`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
