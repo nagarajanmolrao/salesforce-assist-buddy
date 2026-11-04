@@ -49,20 +49,6 @@ Open a downloaded `.log` file and select **Log Details** from the editor title b
 
 ![Log Details showing sample execution events, an expanded method block, and debug messages](./docs/screenshots/log-details.png)
 
-## Apex Log Workflow
-
-See the [Log Viewer user guide](./docs/log-viewer.md) for step-by-step instructions.
-
-Log Viewer filters and title-bar actions follow the panel's selected tool and visibility. Opening Query Runner or Experience Login in an editor leaves the panel picker on Log Viewer, so its controls remain available. Focusing a separate editor does not hide them or change the org or trace flags.
-
-![Log Viewer showing sample users, operations, log durations, and three selected log types](./screenshots/log-viewer.png)
-
-## Log Details
-
-See the [Log Details user guide](./docs/log-details.md) for step-by-step instructions.
-
-![Log Details showing sample execution events, an expanded method block, and debug messages](./screenshots/log-details.png)
-
 ## Trace Flags
 
 See the [Trace Flags user guide](./docs/trace-flags.md) for step-by-step instructions.
