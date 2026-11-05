@@ -1,6 +1,6 @@
 # Experience Login URL — User Guide
 
-Generate an Experience Cloud "Login As" URL from a contact email and network selection, then open it in your browser (normal or incognito/private mode).
+Generate an Experience Cloud "Login As" URL from a contact email and network selection, then open it in your browser.
 
 ## What this tool does
 
@@ -57,28 +57,14 @@ Click **Generate login URL**. The tool validates the selected user still matches
 ### 7. Copy or open in browser
 
 - **Copy URL** — copies the frontdoor URL to your clipboard
-- **Open in browser** — opens the URL in your chosen browser
-
-### Browser and incognito mode
-
-Use the **Browser** dropdown to choose Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, or Arc.
-
-Use the **Incognito/Private mode** toggle:
-
-| Toggle off (normal) | Toggle on (incognito/private) |
-|---------------------|-------------------------------|
-| Generates a URL **without** the session ID | Uses the session-bearing URL |
-| Opens in a normal window of the selected browser | Opens in an incognito/private window of the selected browser |
-
-When incognito is on, you'll be asked to confirm before opening, since the URL contains your authenticated session.
+- **Open in browser** — opens the URL in your default browser
 
 ## Security
 
 - The generated frontdoor URL contains your authenticated Salesforce session credential
 - Session URLs are held only in extension memory — never logged or persisted
 - URLs are cleared when inputs change or the editor closes
-- Treat the clipboard and browser history as sensitive
-- Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions
+- **Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL always contains the authenticated session credential (`sid`). It is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes.
 
 ## Error messages
 

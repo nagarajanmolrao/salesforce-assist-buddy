@@ -81,7 +81,7 @@ The contact picker shows full names, account names when available, active userna
 
 The tool performs Contact, Network, User, and Organization lookups directly through Salesforce APIs, revalidating that the selected active user belongs to the chosen contact and still matches the email before generating the URL. The authenticated admin must have permission to query these records and use Salesforce's Login As functionality. Network membership, session restrictions, and Login As permissions remain enforced by Salesforce.
 
-**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL contains the authenticated session credential. It is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
+**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL always contains the authenticated session credential (`sid`) and is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
 
 ## Settings
 
@@ -120,7 +120,7 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 ## Repository Identity
 
 - Extension: `bill.salesforce-assist-buddy`.
-- Version: `1.2.0`.
+- Version: `1.2.1`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
 - Details view: `salesforceAssistBuddy.logDetails`.
