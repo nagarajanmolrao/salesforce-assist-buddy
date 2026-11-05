@@ -47,33 +47,6 @@
             <h2>Login URL ready</h2>
             <p class="warning">This URL contains a Salesforce session credential. Do not share it or add it to logs or source control.</p>
             
-            <div class="field browser-options">
-                <label>Browser options</label>
-                <div class="browser-row">
-                    <div class="browser-select-wrapper">
-                        <label for="browser-select" class="visually-hidden">Select browser</label>
-                        <select id="browser-select" aria-label="Select browser to open login URL">
-                            <option value="default">Default browser</option>
-                            <option value="chrome">Google Chrome</option>
-                            <option value="firefox">Mozilla Firefox</option>
-                            <option value="safari">Safari</option>
-                            <option value="edge">Microsoft Edge</option>
-                            <option value="brave">Brave</option>
-                            <option value="opera">Opera</option>
-                            <option value="vivaldi">Vivaldi</option>
-                            <option value="arc">Arc</option>
-                        </select>
-                    </div>
-                    <div class="incognito-wrapper">
-                        <label for="incognito-toggle" class="incognito-label">
-                            <input type="checkbox" id="incognito-toggle" aria-label="Open in incognito/private mode">
-                            <span class="incognito-text">Incognito/Private mode</span>
-                        </label>
-                    </div>
-                </div>
-                <p class="browser-hint">When incognito is enabled, the session-bearing URL opens in a private window. When disabled, a URL without the session ID opens in a normal window.</p>
-            </div>
-            
             <div class="actions">
                 <button id="copy" type="button">Copy URL</button>
                 <button id="open" type="button">Open in browser</button>

@@ -11,8 +11,6 @@
     const refresh = document.getElementById('refresh');
     const result = document.getElementById('result');
     const status = document.getElementById('status');
-    const browserSelect = document.getElementById('browser-select');
-    const incognitoToggle = document.getElementById('incognito-toggle');
     let contactMatches = [];
     let busy = true;
     let networksReady = false;
@@ -118,11 +116,7 @@
         });
     });
     document.getElementById('copy').addEventListener('click', () => vscode.postMessage({ command: 'copy' }));
-    document.getElementById('open').addEventListener('click', () => {
-        const browser = browserSelect.value;
-        const incognito = incognitoToggle.checked;
-        vscode.postMessage({ command: 'open', browser, incognito });
-    });
+    document.getElementById('open').addEventListener('click', () => vscode.postMessage({ command: 'open' }));
 
     window.addEventListener('message', event => {
         const message = event.data;

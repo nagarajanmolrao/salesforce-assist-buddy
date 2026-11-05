@@ -204,7 +204,6 @@ test('panel keeps session URLs out of messages and logs and invalidates them on 
     let deferGeneration = false;
     let finishGeneration;
     const url = 'https://sample.my.salesforce.com/secur/frontdoor.jsp?sid=synthetic-sensitive-session';
-    const urlWithoutSession = 'https://sample.my.salesforce.com/secur/frontdoor.jsp?sid=';
     const panel = {
         active: true,
         onDidChangeViewState() {}, onDidDispose() {}, dispose() {},
@@ -226,7 +225,7 @@ test('panel keeps session URLs out of messages and logs and invalidates them on 
             Uri: { joinPath: () => ({ fsPath: 'asset' }), parse: value => value },
             window: {
                 createWebviewPanel: () => panel,
-                async showWarningMessage() { return 'Open in Incognito'; }
+                async showWarningMessage() { return 'Open Login URL'; }
             },
             env: {
                 clipboard: {
@@ -250,7 +249,7 @@ test('panel keeps session URLs out of messages and logs and invalidates them on 
             async findContacts() { return [{ contactId: ids.contact, contactName: 'Alex Morgan', userId: ids.user, username: 'alex@example.test' }]; }
             async generate(...args) {
                 generatedFor.push(args);
-                return deferGeneration ? new Promise(resolve => { finishGeneration = resolve; }) : { url, urlWithoutSession };
+                return deferGeneration ? new Promise(resolve => { finishGeneration = resolve; }) : { url };
             }
         } }
     };
@@ -268,15 +267,15 @@ test('panel keeps session URLs out of messages and logs and invalidates them on 
     assert.equal(messages.at(-1).type, 'generated');
     assert.ok(!JSON.stringify(messages).includes('synthetic-sensitive-session'));
     assert.ok(!JSON.stringify(diagnostics).includes('synthetic-sensitive-session'));
-    console.log('[TEST] Before copy - loginUrl:', instance.loginUrl, 'loginUrlWithoutSession:', instance.loginUrlWithoutSession);
+    console.log('[TEST] Before copy - loginUrl:', instance.loginUrl);
     await instance.handleMessage({ command: 'copy' });
     console.log('[TEST] After copy - copied:', copied, 'messages:', messages.slice(-2));
     console.log('[TEST] Sending open command');
-        console.log('[TEST] instance state before open - loginUrl:', instance.loginUrl, 'loginUrlWithoutSession:', instance.loginUrlWithoutSession, 'disposed:', instance.disposed);
-        await instance.handleMessage({ command: 'open', browser: 'default', incognito: false });
+        console.log('[TEST] instance state before open - loginUrl:', instance.loginUrl, 'disposed:', instance.disposed);
+        await instance.handleMessage({ command: 'open', incognito: false });
         console.log('[TEST] After open command - copied:', copied, 'opened:', opened, 'diagnostics:', diagnostics, 'messages:', messages.slice(-3));
-    assert.deepEqual(copied, [urlWithoutSession]);
-    assert.deepEqual(opened, [urlWithoutSession]);
+    assert.deepEqual(copied, [url]);
+    assert.deepEqual(opened, [url]);
     await instance.handleMessage({ command: 'invalidate' });
     await instance.handleMessage({ command: 'copy' });
     assert.equal(copied.length, 1);

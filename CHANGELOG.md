@@ -1,5 +1,11 @@
 # Change Log
 
+## [1.2.1] - 2026-11-05
+
+### Changed
+- **Experience Login URL** - Removed the browser selection dropdown and Incognito/Private mode toggle. The tool now always generates a session-bearing frontdoor URL (with `sid`), matching v1.0.0/v1.1.0 URL construction. "Open in browser" always opens the session-bearing URL.
+- **URL construction reverted** - `buildExperienceLoginUrl()` always includes the session ID; the conditional `includeSessionId` parameter was removed.
+
 ## [1.2.0] - 2026-11-04
 
 ### Features

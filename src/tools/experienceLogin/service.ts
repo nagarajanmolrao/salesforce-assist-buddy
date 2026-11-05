@@ -37,8 +37,7 @@ export function buildExperienceLoginUrl(
     organizationId: string,
     networkId: string,
     userId: string,
-    contactId: string,
-    includeSessionId = true
+    contactId: string
 ): string {
     const domain = new URL(instanceUrl);
     if (domain.protocol !== 'https:' || domain.username || domain.password) {
@@ -56,9 +55,7 @@ export function buildExperienceLoginUrl(
     loginAs.searchParams.set('sunetworkuserid', userId);
 
     const frontdoor = new URL('/secur/frontdoor.jsp', domain.origin);
-    if (includeSessionId) {
-        frontdoor.searchParams.set('sid', accessToken);
-    }
+    frontdoor.searchParams.set('sid', accessToken);
     frontdoor.searchParams.set('retURL', loginAs.toString());
     return frontdoor.toString();
 }
@@ -130,7 +127,13 @@ export class ExperienceLoginService {
         });
     }
 
-    public async generate(username: string, email: string, networkId: string, contactId: string, userId: string): Promise<{ url: string; urlWithoutSession: string }> {
+    public async generate(
+        username: string,
+        email: string,
+        networkId: string,
+        contactId: string,
+        userId: string
+    ): Promise<{ url: string }> {
         const normalizedEmail = validateEmail(email);
         if (!/^0DB[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(networkId)) throw new Error('Select an Experience Cloud network.');
         if (!/^003[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(contactId) ||
@@ -153,12 +156,9 @@ export class ExperienceLoginService {
             if (!organization) throw new Error('Could not determine the Salesforce organization.');
             
             const url = buildExperienceLoginUrl(
-                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId, true
+                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId
             );
-            const urlWithoutSession = buildExperienceLoginUrl(
-                connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId, false
-            );
-            return { url, urlWithoutSession };
+            return { url };
         });
     }
 }
