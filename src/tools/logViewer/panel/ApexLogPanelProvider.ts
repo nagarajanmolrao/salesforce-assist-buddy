@@ -58,11 +58,6 @@ export class ApexLogPanelProvider implements vscode.WebviewViewProvider, IApexLo
         }, error => logger.error('Webview.panel', 'Could not send a panel update', error));
     }
 
-    public showSearchBoxInWebview() {
-        if (!this._toolActive) return;
-        this.postMessage({ type: 'showSearchBox' });
-    }
-
     public setToolActive(active: boolean) {
         this._toolActive = active;
         const visible = this._view?.visible === true;
@@ -153,14 +148,6 @@ export class ApexLogPanelProvider implements vscode.WebviewViewProvider, IApexLo
                     logger.error('Webview.panel.openLog', 'Log-open message could not be handled', err);
                     // If log open fails, show error fallback
                     this.updateView([], false, { hasError: true, message: err?.message || 'Failed to open log.' });
-                }
-            } else if (message.command === 'inlineSearch') {
-                try {
-                    this._logDataProvider?.setSearchFilter(message.text);
-                    this.updateView();
-                } catch (err: any) {
-                    logger.error('Webview.panel.search', 'Search update failed', err);
-                    this.updateView([], false, { hasError: true, message: err?.message || 'Search failed.' });
                 }
             } else if (message.command === 'filterOperations') {
                 if (!this._toolActive) return;

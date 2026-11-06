@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { LogDataProvider } from './ApexLogDataProvider';
 import { ApexLog } from './ApexLogWrapper';
 import { ApexLogDetails } from './details/ApexLogDetails';
+import { ApexLogFileManager } from './ApexLogFileManager';
 import { getConnection, retryOnSessionExpire } from '../../core/connection';
 import { logger } from '../../core/logger';
 import { getConfiguration } from '../../core/extensionIdentity';
@@ -68,11 +69,22 @@ export async function openLog(data: { id: string }) {
             Request: result.Request ?? ''
         }, provider.connection);
 
-        // Open by default in the Log Details editor view instead of a raw .log text file.
-        if (!extensionContext) {
-            throw new Error('Log Viewer has not been initialized');
+        const config = getConfiguration();
+        const openLogsInApexLogViewer = config.get('openLogsInApexLogViewer') ?? false;
+
+        // Always download and save the log to .logs folder, regardless of viewer.
+        const storagePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        const logFileManager = new ApexLogFileManager(storagePath);
+        await logFileManager.showLog(log);
+
+        // Default behavior: open in VS Code editor (already done by showLog).
+        // Use Apex Log Details webview only when the setting is enabled.
+        if (openLogsInApexLogViewer) {
+            if (!extensionContext) {
+                throw new Error('Log Viewer has not been initialized');
+            }
+            await ApexLogDetails.showLogDetailsByLog(log, extensionContext.extensionUri);
         }
-        await ApexLogDetails.showLogDetailsByLog(log, extensionContext.extensionUri);
         getExistingLogDataProvider()?.markLogAsOpened(log.id);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

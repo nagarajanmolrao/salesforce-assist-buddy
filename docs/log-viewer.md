@@ -36,15 +36,13 @@ Select one or more **Log types** (Operation values) beside the tool selector. St
 
 New Operation values are added automatically as logs arrive and are remembered per workspace. **All types** includes future types automatically; explicit selections do not.
 
-### 5. Search and sort
+### 5. Sort
 
-- **Text search** filters logs by any visible field (user, operation, status, etc.)
-- Click column headers to sort by user, operation, time, status, size, or duration
-- Column widths are saved and restored across reloads
+Click column headers to sort by user, operation, time, status, size, or duration. Column widths are saved and restored across reloads.
 
 ### 6. Open a log
 
-Click a log to download and cache it in the workspace `.logs` directory, then open **Log Details** for event navigation, expandable method blocks, search, and `USER_DEBUG` filtering.
+Click a log to download and cache it in the workspace `.logs` directory. By default, the log opens in the VS Code editor. To open Log Details directly instead, enable the `salesforceAssistBuddy.openLogsInApexLogViewer` setting in VS Code settings.
 
 ### 7. Clean up
 

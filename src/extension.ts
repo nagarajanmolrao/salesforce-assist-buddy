@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getConnection } from './core/connection';
-import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, showSearchBox, clearSearch, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
+import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
 import { ApexLogPanelProvider } from './tools/logViewer/panel/ApexLogPanelProvider';
 import { stopTraceFlagKeepAlive } from './tools/logViewer/TraceFlagManager';
 import { ApexLogDetails } from './tools/logViewer/details/ApexLogDetails';
@@ -141,8 +141,6 @@ function registerCommands(context: vscode.ExtensionContext, provider: ApexLogPan
         ['toggleAutoRefresh', toggleAutoRefresh],
         ['deleteAllLogs', deleteAllLogs],
         ['showOptions', showOptions],
-        ['showSearchBox', showSearchBox],
-        ['clearSearch', clearSearch],
         ['clearDownloadedLogs', clearDownloadedLogs],
         ['setTraceFlagForUser', setTraceFlagForUser],
         ['setTraceFlagBySearch', setTraceFlagBySearch],
