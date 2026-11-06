@@ -34,9 +34,9 @@ The GitHub repository is configured for documentation links; Marketplace publica
 - Refresh the latest logs manually or enable automatic refresh while the panel is visible.
 - Restrict results to the connected user or include other users.
 - Filter and sort logs by user, operation, time, status, size, or duration.
-- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter combines with text search and applies to the latest 100 fetched records, not the entire org history.
+- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter applies to the latest 100 fetched records, not the entire org history.
 - Open a log to download and cache it in the workspace `.logs` directory.
-- Open **Log Details** for event navigation, expandable method blocks, search, and USER_DEBUG filtering.
+- Open **Log Details** for event navigation, expandable method blocks, USER_DEBUG filtering, and more.
 - Clear downloaded files locally or delete remote Apex logs after confirmation.
 
 Log Viewer filters and title-bar actions follow the panel's selected tool and visibility. Opening SOQL Query Runner or Experience Login in an editor leaves the panel picker on Log Viewer, so its controls remain available. Focusing a separate editor does not hide them or change the org or trace flags.
@@ -45,7 +45,7 @@ Log Viewer filters and title-bar actions follow the panel's selected tool and vi
 
 ## Log Details
 
-Open a downloaded `.log` file and select **Log Details** from the editor title bar. Expand or collapse method blocks, search execution events, hide heap-allocation entries, or show only `USER_DEBUG` messages.
+Clicking a log downloads and saves it to the workspace `.logs` directory and opens it in the VS Code editor by default. Open **Log Details** from the editor title bar for event navigation, expandable method blocks, search, and USER_DEBUG filtering. You can change the default to open Log Details directly via the `salesforceAssistBuddy.openLogsInApexLogViewer` setting.
 
 ![Log Details showing sample execution events, an expanded method block, and debug messages](./docs/screenshots/log-details.png)
 
@@ -92,6 +92,7 @@ Search VS Code settings for **Salesforce Assist Buddy**.
 | `salesforceAssistBuddy.autoRefresh` | `true` | Refresh while the log panel is visible. |
 | `salesforceAssistBuddy.refreshInterval` | `5000` | Refresh interval in milliseconds; minimum 1000. |
 | `salesforceAssistBuddy.currentUserOnly` | `true` | Limit logs to the connected user. |
+| `salesforceAssistBuddy.openLogsInApexLogViewer` | `false` | Open logs in Log Details webview instead of the VS Code editor. When `false` (default), logs open in the VS Code editor. |
 | `salesforceAssistBuddy.traceFlagExpirationInterval` | `15` | Trace-flag expiration interval in minutes; minimum 5. |
 | `salesforceAssistBuddy.showOutputOnStart` | `true` | Show the diagnostic output channel during startup. |
 | `salesforceAssistBuddy.debugLevel` | `InternalAll` | Salesforce debug level; also supports `SFDC_DevConsole`. |

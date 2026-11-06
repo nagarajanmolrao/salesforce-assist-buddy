@@ -2,7 +2,7 @@
   "name": "salesforce-assist-buddy",
   "displayName": "Salesforce Assist Buddy",
   "description": "View and manage Salesforce developer logs with auto-refresh and filtering capabilities",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "publisher": "Anmol",
   "author": {
     "name": "Anmol"
@@ -62,6 +62,11 @@
           "default": true,
           "description": "Show the Salesforce Assist Buddy output channel when the extension starts"
         },
+        "salesforceAssistBuddy.openLogsInApexLogViewer": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether opening an Apex log shows the Apex Log Details webview instead of the VS Code editor. Default: opens in VS Code editor and saves to .logs folder."
+        },
         "salesforceAssistBuddy.debugLevel": {
           "type": "string",
           "default": "InternalAll",
@@ -118,12 +123,6 @@
         "category": "Salesforce Assist Buddy"
       },
       {
-        "command": "salesforce-assist-buddy.showSearchBox",
-        "title": "Search Logs",
-        "icon": "$(search)",
-        "category": "Salesforce Assist Buddy"
-      },
-      {
         "command": "salesforce-assist-buddy.toggleAutoRefresh",
         "title": "Toggle Auto Refresh",
         "icon": "$(sync)",
@@ -162,11 +161,6 @@
     ],
     "menus": {
       "view/title": [
-        {
-          "command": "salesforce-assist-buddy.showSearchBox",
-          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
-          "group": "navigation@1"
-        },
         {
           "command": "salesforce-assist-buddy.refreshLogs",
           "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",

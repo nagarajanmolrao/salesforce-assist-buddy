@@ -88,9 +88,6 @@ test('operation filters support multiple types, search intersection, none, and a
         await provider.refreshLogs(true);
         await provider.setOperationFilter(['UniversalPerfLogger', '/webruntime/api/execute']);
         assert.equal(provider.getGridData().length, 2);
-        provider.setSearchFilter('alice');
-        assert.equal(provider.getGridData().length, 1);
-        provider.clearSearch();
         await provider.setOperationFilter([]);
         assert.equal(provider.getGridData().length, 0);
         await provider.setOperationFilter(null);

@@ -19,7 +19,6 @@ export class LogDataProvider implements vscode.Disposable {
 
     private logs: ApexLog[] = [];
     private filteredLogs: ApexLog[] = [];
-    private searchText: string = '';
     private autoRefreshScheduledId?: NodeJS.Timeout;
     private autoRefreshPaused: boolean = true;
     private isRefreshing: boolean = false;
@@ -181,9 +180,6 @@ export class LogDataProvider implements vscode.Disposable {
             void this.context.workspaceState.update('logViewer.operationTypes', [...this.operationTypes])
                 .then(undefined, error => logger.warn('Log Viewer.filters', 'Could not save discovered operation types', error));
         }
-        if (isInitialLoad) {
-            this.searchText = '';
-        }
         this._filterLogs();
     }
 
@@ -320,27 +316,11 @@ export class LogDataProvider implements vscode.Disposable {
         await this.context.workspaceState.update('logViewer.selectedOperationTypes', this.selectedOperationTypes);
     }
 
-    public setSearchFilter(text: string) {
-        this.searchText = text;
-        this._filterLogs();
-        this._notifyDataChange(false);
-    }
-
-    // Clear the log filter and notify the panel. TODO: Currently unused.
-    public clearSearch() {
-        this.searchText = '';
-        this._filterLogs();
-        this._notifyDataChange(false);
-    }
-
-    // Filter logs by the search text.
+    // Filter logs by operation type.
     private _filterLogs() {
-        const searchLower = this.searchText.toLowerCase();
         this.filteredLogs = this.logs.filter(log => {
             if (this.selectedOperationTypes !== null && !this.selectedOperationTypes.includes(log.operation)) return false;
-            const operation = log.operation.toLowerCase();
-            const user = log.user.toLowerCase();
-            return operation.includes(searchLower) || user.includes(searchLower);
+            return true;
         });
     }
 

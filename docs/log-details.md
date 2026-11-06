@@ -15,7 +15,7 @@ Inspect Apex debug log events with expandable method blocks, search, and USER_DE
 
 ### 1. Open Log Details
 
-Open a downloaded `.log` file and select **Log Details** from the editor title bar. Log Details now opens by default when you click a log in the Log Viewer.
+Clicking a log in the Log Viewer downloads and saves it to the workspace `.logs` directory and opens it in the VS Code editor by default. To open Log Details directly from the editor, select **Log Details** from the editor title bar, or enable the `salesforceAssistBuddy.openLogsInApexLogViewer` setting to make Log Details the default open behavior.
 
 ### 2. Navigate execution events
 
