@@ -16,7 +16,7 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Salesforce CLI (`sf`) **version 2.136.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
 - Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
