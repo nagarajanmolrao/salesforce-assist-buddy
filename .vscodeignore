@@ -16,9 +16,6 @@ src/**/*.spec.*
 !src/tools/logViewer/panel/ApexLogPanel.html
 !src/tools/logViewer/panel/ApexLogPanel.css
 !src/tools/logViewer/panel/ApexLogPanel.js
-!src/tools/logViewer/details/ApexLogDetails.html
-!src/tools/logViewer/details/ApexLogDetails.css
-!src/tools/logViewer/details/ApexLogDetails.js
 !src/tools/soqlRunner/SoqlRunner.html
 !src/tools/soqlRunner/SoqlRunner.css
 !src/tools/soqlRunner/SoqlRunner.js

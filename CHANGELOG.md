@@ -1,10 +1,9 @@
 # Change Log
 
-## [1.2.2] - Unreleased
+## [1.2.3] - Unreleased
 
 ### Changed
-- **Log Viewer default open behavior** - Logs now open by default in the VS Code editor instead of the Log Details webview. Added the `salesforceAssistBuddy.openLogsInApexLogViewer` setting (default `false`) to control this. When enabled, clicking a log opens the Log Details webview instead.
-- **Logs always saved to `.logs`** - Clicking a log always downloads and saves it to the workspace `.logs` directory, regardless of whether it opens in the VS Code editor or Log Details webview.
+- **Log Details removed** - The Log Details feature (dedicated editor webview for inspecting Apex debug log events) has been completely removed from the extension. Logs now open directly in the VS Code editor when clicked. Removed the `salesforceAssistBuddy.openLogsInApexLogViewer` setting, the Log Details command, editor title menu item, and all related source files.
 - **Log Viewer line wrapping** - Horizontal lines in log grid cells now wrap instead of being clipped, improving readability of long messages.
 - **Search removed from Log Viewer** - The inline search field and Ctrl+F search functionality have been removed from the Log Viewer panel. Operation type filtering remains available.
 
