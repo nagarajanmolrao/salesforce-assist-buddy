@@ -4,7 +4,7 @@ Browse, filter, and inspect Apex debug logs from authenticated Salesforce orgs d
 
 ## What this tool does
 
-The **Log Viewer** lists recent Apex logs for your connected org, lets you filter and sort them by user, operation, time, status, size, or duration, and opens individual logs in the **Log Details** editor for deep inspection.
+The **Log Viewer** lists recent Apex logs for your connected org, lets you filter and sort them by user, operation, time, status, size, or duration, and opens individual logs in the **VS Code editor** for inspection.
 
 ## Prerequisites
 
@@ -42,7 +42,7 @@ Click column headers to sort by user, operation, time, status, size, or duration
 
 ### 6. Open a log
 
-Click a log to download and cache it in the workspace `.logs` directory. By default, the log opens in the VS Code editor. To open Log Details directly instead, enable the `salesforceAssistBuddy.openLogsInApexLogViewer` setting in VS Code settings.
+Click a log to download and cache it in the workspace `.logs` directory. The log opens in the VS Code editor for inspection.
 
 ### 7. Clean up
 

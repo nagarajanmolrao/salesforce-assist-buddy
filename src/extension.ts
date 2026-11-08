@@ -4,7 +4,6 @@ import { getConnection } from './core/connection';
 import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
 import { ApexLogPanelProvider } from './tools/logViewer/panel/ApexLogPanelProvider';
 import { stopTraceFlagKeepAlive } from './tools/logViewer/TraceFlagManager';
-import { ApexLogDetails } from './tools/logViewer/details/ApexLogDetails';
 import { logger, outputChannel, startLogRetention } from './core/logger';
 import { commandId, extensionIds, getConfiguration } from './core/extensionIdentity';
 import { configureLogViewer, disposeLogViewer, getExistingLogDataProvider, getLogDataProvider, openLog } from './tools/logViewer/service';
@@ -25,9 +24,6 @@ export async function activate(context: vscode.ExtensionContext) {
         outputChannel.show(true); // Make output visible
     }
     logger.info('Activation', 'Starting Salesforce Assist Buddy');
-
-    // Register the ApexLogDetails command
-    ApexLogDetails.registerCommand(context);
 
     try {
         // Create file watchers to detect org changes in the configuration file.

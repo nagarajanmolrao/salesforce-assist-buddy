@@ -6,7 +6,7 @@ import { exec } from 'child_process';
 import { logger } from './logger';
 
 // Minimum required sf CLI version that supports all commands used by this extension
-const MIN_SF_VERSION = '2.87.0';
+const MIN_SF_VERSION = '2.136.0';
 
 let currentOrgUsername: string | undefined;
 let currentConnection: Connection | undefined;

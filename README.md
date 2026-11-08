@@ -7,7 +7,6 @@ Salesforce developer tools for VS Code: inspect Apex logs, manage user trace fla
 | Tool or view | Purpose |
 | --- | --- |
 | [Log Viewer](#apex-log-workflow) | Browse recent logs, select multiple Operation types, and filter or sort the results. |
-| [Log Details](#log-details) | Inspect execution events, search log content, and expand method blocks. |
 | [Trace Flags](#trace-flags) | Find users and enable or disable their debug trace flags. |
 | [Query Runner](#query-runner) | Select an org, run saved SOQL or SOSL queries with parameters, and export searchable results as CSV. |
 | [Experience Login URL](#experience-login-url) | Generate an Experience Cloud login-as URL from a contact email and network selection. |
@@ -17,7 +16,7 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Salesforce CLI (`sf`) **version 2.136.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
 - Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
@@ -36,18 +35,11 @@ The GitHub repository is configured for documentation links; Marketplace publica
 - Filter and sort logs by user, operation, time, status, size, or duration.
 - Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter applies to the latest 100 fetched records, not the entire org history.
 - Open a log to download and cache it in the workspace `.logs` directory.
-- Open **Log Details** for event navigation, expandable method blocks, USER_DEBUG filtering, and more.
 - Clear downloaded files locally or delete remote Apex logs after confirmation.
 
 Log Viewer filters and title-bar actions follow the panel's selected tool and visibility. Opening SOQL Query Runner or Experience Login in an editor leaves the panel picker on Log Viewer, so its controls remain available. Focusing a separate editor does not hide them or change the org or trace flags.
 
 ![Log Viewer showing sample users, operations, log durations, and three selected log types](./docs/screenshots/log-viewer.png)
-
-## Log Details
-
-Clicking a log downloads and saves it to the workspace `.logs` directory and opens it in the VS Code editor by default. Open **Log Details** from the editor title bar for event navigation, expandable method blocks, search, and USER_DEBUG filtering. You can change the default to open Log Details directly via the `salesforceAssistBuddy.openLogsInApexLogViewer` setting.
-
-![Log Details showing sample execution events, an expanded method block, and debug messages](./docs/screenshots/log-details.png)
 
 ## Trace Flags
 
@@ -92,7 +84,6 @@ Search VS Code settings for **Salesforce Assist Buddy**.
 | `salesforceAssistBuddy.autoRefresh` | `true` | Refresh while the log panel is visible. |
 | `salesforceAssistBuddy.refreshInterval` | `5000` | Refresh interval in milliseconds; minimum 1000. |
 | `salesforceAssistBuddy.currentUserOnly` | `true` | Limit logs to the connected user. |
-| `salesforceAssistBuddy.openLogsInApexLogViewer` | `false` | Open logs in Log Details webview instead of the VS Code editor. When `false` (default), logs open in the VS Code editor. |
 | `salesforceAssistBuddy.traceFlagExpirationInterval` | `15` | Trace-flag expiration interval in minutes; minimum 5. |
 | `salesforceAssistBuddy.showOutputOnStart` | `true` | Show the diagnostic output channel during startup. |
 | `salesforceAssistBuddy.debugLevel` | `InternalAll` | Salesforce debug level; also supports `SFDC_DevConsole`. |
@@ -124,7 +115,6 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 - Version: `1.2.1`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
-- Details view: `salesforceAssistBuddy.logDetails`.
 
 ## Releases
 

@@ -2,7 +2,7 @@
   "name": "salesforce-assist-buddy",
   "displayName": "Salesforce Assist Buddy",
   "description": "View and manage Salesforce developer logs with auto-refresh and filtering capabilities",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "publisher": "Anmol",
   "author": {
     "name": "Anmol"
@@ -61,11 +61,6 @@
           "type": "boolean",
           "default": true,
           "description": "Show the Salesforce Assist Buddy output channel when the extension starts"
-        },
-        "salesforceAssistBuddy.openLogsInApexLogViewer": {
-          "type": "boolean",
-          "default": false,
-          "description": "Whether opening an Apex log shows the Apex Log Details webview instead of the VS Code editor. Default: opens in VS Code editor and saves to .logs folder."
         },
         "salesforceAssistBuddy.debugLevel": {
           "type": "string",
@@ -151,12 +146,6 @@
         "title": "Delete All Trace Flags (Except Current User)",
         "icon": "$(circle-slash)",
         "category": "Salesforce Assist Buddy"
-      },
-      {
-        "command": "salesforce-assist-buddy.showLogDetails",
-        "title": "Log Details",
-        "icon": "$(list-flat)",
-        "category": "Salesforce Assist Buddy"
       }
     ],
     "menus": {
@@ -204,9 +193,9 @@
       ],
       "editor/title": [
         {
-          "command": "salesforce-assist-buddy.showLogDetails",
-          "title": "Log Details",
-          "icon": "$(list-flat)",
+          "command": "salesforce-assist-buddy.refreshLogs",
+          "title": "Refresh Logs",
+          "icon": "$(refresh)",
           "when": "resourceLangId =~ /log/ || resourceExtname =~ /\\.log/ || resourceFilename =~ /.*07LJW.*/ || resourceFilename =~ /.*\\d{2}-\\d{2}-\\d{4}_\\d{2}-\\d{2}.*/",
           "group": "navigation@2"
         }

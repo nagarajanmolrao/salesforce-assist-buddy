@@ -3,8 +3,7 @@ import * as vscode from 'vscode';
 export const extensionIds = {
     name: 'salesforce-assist-buddy',
     configuration: 'salesforceAssistBuddy',
-    logView: 'salesforceAssistBuddy.logs',
-    detailsView: 'salesforceAssistBuddy.logDetails'
+    logView: 'salesforceAssistBuddy.logs'
 } as const;
 
 export function commandId(command: string): string {
