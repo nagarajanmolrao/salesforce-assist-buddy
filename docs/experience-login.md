@@ -1,84 +1,28 @@
-# Experience Login URL — User Guide
+# Experience Login URL Guide
 
-Generate an Experience Cloud "Login As" URL from a contact email and network selection, then open it in your browser.
+Generate an Experience Cloud login-as URL from a contact email and network selection.
 
-## What this tool does
+## Opening Experience Login URL
 
-The **Experience Login URL** tool lets an authenticated Salesforce admin generate a frontdoor login URL that logs into an Experience Cloud site as a specific contact user, without needing that user's password. The URL contains an authenticated session credential and is held only in extension memory — never written to logs, query libraries, or webview state.
+Select **Experience Login URL** from the tool dropdown to open its editor.
 
-## Prerequisites
+## Steps
 
-- An authenticated Salesforce org via the Salesforce CLI (`sf org login ...`)
-- The org must have **Experience Cloud** enabled (otherwise no networks will be listed)
-- Your user must have permission to query Contact, Network, User, and Organization records, and to use Salesforce's **Login As** functionality
+1. Choose an authenticated **Salesforce org** from the dropdown.
+2. Enter the **Contact email** and choose **Find contacts**.
+3. Select a matching **Contact / Experience user** from the results.
+4. Choose an **Experience network** loaded from that org.
+5. Select **Generate login URL**.
 
-## Step-by-step
+## Behavior
 
-### 1. Open the tool
-
-Open the **Salesforce Assist Buddy** panel, then select **Experience Login URL** from the tool dropdown. A new editor tab opens with the Experience Login webview.
-
-### 2. Choose an org
-
-The org dropdown initially shows your default authenticated org. To switch:
-
-- Pick a different org from the dropdown, or
-- Click **Refresh orgs** to reload CLI authentication entries
-
-Switching orgs clears contact selections and generated URLs, reloads networks, and uses a fresh username-scoped connection.
-
-### 3. Enter a contact email
-
-Type part or all of a contact's email address in the **Contact email** field, then click **Find contacts**.
-
-> You can enter a partial email (for example `bill` or `bill@example`). The tool uses a `LIKE` search, so you don't need the full address.
-
-### 4. Select a contact / Experience user
-
-The contact picker shows matching contacts with:
-
-- Full name
-- Account name (when available)
-- Active username
-- Contact ID
-
-Select the contact you want to log in as. Contacts without an active Experience user are listed but cannot be selected for login.
-
-### 5. Choose an Experience network
-
-Click **Refresh networks** (or networks load automatically when you select an org), then choose the Experience Cloud network from the dropdown.
-
-If no networks appear, the org may not have Experience Cloud enabled.
-
-### 6. Generate the login URL
-
-Click **Generate login URL**. The tool validates the selected user still matches the contact and email, then builds a frontdoor URL containing your authenticated session credential.
-
-### 7. Copy or open in browser
-
-- **Copy URL** — copies the frontdoor URL to your clipboard
-- **Open in browser** — opens the URL in your default browser
+- The org dropdown initially uses the default authenticated org and remembers your selection within the editor.
+- **Refresh orgs** reloads CLI authentication entries.
+- **Refresh networks** reloads the selected org's networks.
+- Switching orgs clears contact selections and generated URLs, reloads networks, and uses an explicitly username-scoped connection.
+- Contacts without an active Experience user remain listed but cannot be selected for login.
+- The lookup is bounded to 100 contacts and 200 linked active users.
 
 ## Security
 
-- The generated frontdoor URL contains your authenticated Salesforce session credential
-- Session URLs are held only in extension memory — never logged or persisted
-- URLs are cleared when inputs change or the editor closes
-- **Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL always contains the authenticated session credential (`sid`). It is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes.
-
-## Error messages
-
-| Message | Cause |
-|---------|-------|
-| "Select an authenticated org." | No org selected in the dropdown |
-| "Enter a contact email." | Email field is empty |
-| "Email must not contain spaces." | Email contains whitespace |
-| "Email is too long (max 254 characters)." | Email exceeds 254 characters |
-| "Experience Cloud networks are not available for this org. This org may not have Experience Cloud enabled." | The selected org doesn't support the Network sObject |
-| "More than 200 active users match this email." | Too many matching users; narrow the email |
-| "Generate a login URL first." | Trying to copy/open without generating |
-| "The URL action failed. Generate a fresh URL and try again." | Copy/open action failed; regenerate |
-
----
-
-*Part of Salesforce Assist Buddy for VS Code.*
+**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL contains the authenticated session credential — it is held only in extension memory, never written to logs or query libraries, and cleared when inputs change or the editor closes.

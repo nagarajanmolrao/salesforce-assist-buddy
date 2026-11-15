@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getConnection } from './core/connection';
-import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
+import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, showSearchBox, clearSearch, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
 import { ApexLogPanelProvider } from './tools/logViewer/panel/ApexLogPanelProvider';
 import { stopTraceFlagKeepAlive } from './tools/logViewer/TraceFlagManager';
 import { logger, outputChannel, startLogRetention } from './core/logger';
@@ -9,6 +9,7 @@ import { commandId, extensionIds, getConfiguration } from './core/extensionIdent
 import { configureLogViewer, disposeLogViewer, getExistingLogDataProvider, getLogDataProvider, openLog } from './tools/logViewer/service';
 import { QueryRunnerPanel } from './tools/soqlRunner/QueryRunnerPanel';
 import { ExperienceLoginPanel } from './tools/experienceLogin/ExperienceLoginPanel';
+import { activateApexDebugViewer } from './tools/apexDebugViewer/apexDebugViewerPanel';
 import { ToolId } from './tools/registry';
 
 export { outputChannel } from './core/logger';
@@ -30,11 +31,14 @@ export async function activate(context: vscode.ExtensionContext) {
         setupConfigFileWatchers(context);
 
         // Use getLogDataProvider to ensure provider is initialized
+        activateApexDebugViewer(context);
         const provider = new ApexLogPanelProvider(context.extensionUri, await getLogDataProvider(), (toolId: ToolId) => {
             if (toolId === 'soql-runner') {
                         context.subscriptions.push(new QueryRunnerPanel(context));
             } else if (toolId === 'experience-login') {
                 context.subscriptions.push(new ExperienceLoginPanel(context));
+            } else if (toolId === 'apex-debug-log-viewer') {
+                ensureApexDebugViewerPanel();
             }
         });
         activeProvider = provider;
@@ -108,6 +112,7 @@ function createConfigWatcher(configPath: string): vscode.FileSystemWatcher {
                         const newConnection = await getConnection();
                         await logDataProvider!.updateConnection(newConnection);
                         progress.report({ message: 'Refreshing logs...' });
+                        await new Promise(res => setTimeout(res, 300));
                     });
                     logger.info('OrgChange', 'Connection updated and logs refreshed');
                     // Send orgChanged message to webview to close search bar
@@ -137,6 +142,8 @@ function registerCommands(context: vscode.ExtensionContext, provider: ApexLogPan
         ['toggleAutoRefresh', toggleAutoRefresh],
         ['deleteAllLogs', deleteAllLogs],
         ['showOptions', showOptions],
+        ['showSearchBox', showSearchBox],
+        ['clearSearch', clearSearch],
         ['clearDownloadedLogs', clearDownloadedLogs],
         ['setTraceFlagForUser', setTraceFlagForUser],
         ['setTraceFlagBySearch', setTraceFlagBySearch],
@@ -165,6 +172,10 @@ export function deactivate() {
     stopTraceFlagKeepAlive();
     disposeLogViewer();
     activeProvider = undefined;
+}
+
+function ensureApexDebugViewerPanel(): void {
+    void vscode.commands.executeCommand('salesforce-assist-buddy.openApexDebugLogViewer');
 }
 
 export { getLogDataProvider, openLog };

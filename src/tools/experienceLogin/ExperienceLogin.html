@@ -23,7 +23,7 @@
             <div class="field">
                 <label for="email">Contact email</label>
                 <div class="network-row">
-                    <input id="email" type="text" autocomplete="off" maxlength="254" placeholder="user@example.com">
+                    <input id="email" type="text" autocomplete="off" required maxlength="254" placeholder="user@example.com">
                     <button id="find-contacts" type="button" disabled>Find contacts</button>
                 </div>
             </div>
@@ -46,7 +46,6 @@
         <section id="result" aria-label="Generated login URL" hidden>
             <h2>Login URL ready</h2>
             <p class="warning">This URL contains a Salesforce session credential. Do not share it or add it to logs or source control.</p>
-            
             <div class="actions">
                 <button id="copy" type="button">Copy URL</button>
                 <button id="open" type="button">Open in browser</button>

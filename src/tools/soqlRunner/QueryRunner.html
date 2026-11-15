@@ -24,7 +24,11 @@
             </label>
             <label class="control-group query-control">
                 <span>Saved query</span>
-                <select id="query-select" aria-label="Saved query"></select>
+                <div class="searchable-dropdown" id="query-select-wrapper" role="combobox" aria-expanded="false" aria-owns="query-select-options" aria-haspopup="listbox">
+                    <input type="text" id="query-select" class="dropdown-input" role="textbox" autocomplete="off" placeholder="Select a saved query" aria-controls="query-select-options"/>
+                    <button type="button" id="query-select-toggle" class="dropdown-toggle" aria-label="Open query list">▾</button>
+                    <ul id="query-select-options" class="dropdown-list" role="listbox" hidden></ul>
+                </div>
             </label>
             <button id="reload-library" type="button">Reload library</button>
             <button id="open-library" type="button">Open library</button>

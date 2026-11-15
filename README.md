@@ -10,20 +10,21 @@ Salesforce developer tools for VS Code: inspect Apex logs, manage user trace fla
 | [Trace Flags](#trace-flags) | Find users and enable or disable their debug trace flags. |
 | [Query Runner](#query-runner) | Select an org, run saved SOQL or SOSL queries with parameters, and export searchable results as CSV. |
 | [Experience Login URL](#experience-login-url) | Generate an Experience Cloud login-as URL from a contact email and network selection. |
+| [Apex Debug Log Viewer](#apex-debug-log-viewer) | Open downloaded `.log` files and view Apex debug log content with source navigation and class/method coloring. |
 
 The screenshots below show the extension's webviews rendered with fictional sample data and a VS Code-style dark theme. They omit VS Code's surrounding tabs and title-bar actions; no live org data or credentials are shown.
 
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) **version 2.136.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
 - Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
 ## Install Locally
 
 1. Build the VSIX using the development commands below.
-2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.0.0.vsix`.
+2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.1.vsix`.
 3. Open an authenticated Salesforce project and the **Salesforce Assist Buddy** panel.
 
 The GitHub repository is configured for documentation links; Marketplace publication is not configured.
@@ -33,37 +34,57 @@ The GitHub repository is configured for documentation links; Marketplace publica
 - Refresh the latest logs manually or enable automatic refresh while the panel is visible.
 - Restrict results to the connected user or include other users.
 - Filter and sort logs by user, operation, time, status, size, or duration.
-- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter applies to the latest 100 fetched records, not the entire org history.
+- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter combines with text search and applies to the latest 100 fetched records, not the entire org history.
 - Open a log to download and cache it in the workspace `.logs` directory.
 - Clear downloaded files locally or delete remote Apex logs after confirmation.
 
 Log Viewer filters and title-bar actions follow the panel's selected tool and visibility. Opening SOQL Query Runner or Experience Login in an editor leaves the panel picker on Log Viewer, so its controls remain available. Focusing a separate editor does not hide them or change the org or trace flags.
 
-![Log Viewer showing sample users, operations, log durations, and three selected log types](./docs/screenshots/log-viewer.png)
+![Log Viewer showing sample users, operations, log durations, and three selected log types](docs/screenshots/log-viewer.png)
+
+## Apex Debug Log Viewer
+
+![Apex Debug Log Viewer showing call stack tree, log lines, filter chips, and theme toggle](docs/screenshots/apex-debug-log-viewer.png)
+
+Open a downloaded `.log` file and select **Apex Debug Log Viewer** from the editor title bar (or via the command palette). It renders the Apex debug log with:
+
+- **Call stack tree** — expandable method blocks with class, method, signature, params, line number, and duration.
+- **Virtualized log lines** — fast rendering of large logs with timestamps, event types, and duration.
+- **Filter chips** — All / Methods / SOQL / DML / Debug / Exceptions plus namespace filtering and global search.
+- **Source navigation** — class and method names are colored and **Ctrl+clickable** to open the source class at the line when source is available under `salesforceAssistBuddy.apexDebugLogViewer.sourcePath` (default: `<workspace>/force-app/main/default/classes`). Use **Show Raw Log** to open the current log as a file in the VS Code editor.
+- **Highlight slots** — color-code log lines or tree nodes for easy reference.
+- **Help overlay** — feature summary and usage notes.
+- **Theme toggle** — click `🌓 Theme` in the header to cycle between `system`, `light`, and `dark` modes, independent of your OS theme. Configured via `salesforceAssistBuddy.apexDebugLogViewer.theme`.
+
+By default, clicking a log in Log Viewer opens it in the VS Code editor. Set `salesforceAssistBuddy.logViewer.defaultOpenIn` to `apexDebugLogViewer` to open logs directly in the Apex Debug Log Viewer instead.
 
 ## Trace Flags
 
-See the [Trace Flags user guide](./docs/trace-flags.md) for step-by-step instructions.
+The flag-icon command, **Set TraceFlag for User**, opens a searchable list of up to 100 active users. Typing any part of a name or a username prefix queries the org after a 300 ms pause rather than downloading every user.
+
+The person-add command, **Set TraceFlag by Username or Email**, first prompts for a keyword. Press Enter to search using `Username LIKE '%keyword%' OR Email LIKE '%keyword%'`, then choose a matching user. Results are limited to 100 users; narrow the keyword when necessary.
+
+Both commands exclude the current user from the picker and check trace-flag status only for displayed users. Choosing a user enables their trace flag, or disables it when an active flag already exists. Enabled flags are renewed automatically. The current user's trace flag is initialized separately.
+
+Log Viewer identifies the current user before querying, but sets up their trace flag in the background so existing logs can appear without waiting for trace-flag creation. Initial log retrieval starts once the webview is ready.
+
+The trace-flag cleanup command removes expired flags for other users. Its existing command ID is `salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent`.
 
 ## Query Runner
 
-See the [Query Runner user guide](./docs/query-runner.md) for step-by-step instructions.
-
 Select **Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available. The list is cached for the editor session and refreshed only when requested. Queries run through a cached Salesforce Core connection for the selected username, independently of the default org used by Log Viewer.
 
-![Query Runner showing a sample org selection, saved query, query type selector, and parameter inputs](./docs/screenshots/soql-query-runner-with-results.png)
+![Query Runner showing a sample org selection, saved query, query type selector, and parameter inputs](docs/screenshots/soql-query-runner-with-results.png)
 
 Saved queries are stored under `.sfdx/salesforce-assist-buddy/queries.json` when `.sfdx` exists, or under `.sf/salesforce-assist-buddy/queries.json` when only `.sf` exists. If neither directory exists, `.sfdx/salesforce-assist-buddy/queries.json` is created. The file is created with an Accounts example and a Contacts SOSL example the first time the editor opens; use **Open library** to edit it directly and **Reload library** to refresh the list.
 
-The query type dropdown lets you switch between **SOQL** and **SOSL** queries. Query parameters use `{{parameterName}}` placeholders and are defined with a type in the saved query JSON; matching input controls appear in the editor. Text parameters can replace a complete literal (`Name = {{name}}`) or appear inside quotes (`Name LIKE '%{{brandName}}%'`). For SOSL queries, the search term is used directly in the FIND clause.
+The query type dropdown lets you switch between **SOQL** and **SOSL** queries. The saved query dropdown is searchable — type to filter saved queries as the library grows; press Enter or click a match to select it. Query parameters use `{{parameterName}}` placeholders and are defined with a type in the saved query JSON; matching input controls appear in the editor. Text parameters can replace a complete literal (`Name = {{name}}`) or appear inside quotes (`Name LIKE '%{{brandName}}%'`). For SOSL queries, the search term is used directly in the FIND clause.
 
 Query results are shown in a sortable table with global search and per-column filters. **Download CSV** exports the complete result set.
 
-![Query results showing fictional records, column filters, global search, and the CSV download action](./docs/screenshots/sosl-query-runner-with-results.png)
+![Query results showing fictional records, column filters, global search, and the CSV download action](docs/screenshots/sosl-query-runner-with-results.png)
 
 ## Experience Login URL
-
-See the [Experience Login user guide](./docs/experience-login.md) for step-by-step instructions.
 
 Select **Experience Login URL** from the tool dropdown to open its editor. Choose an authenticated **Salesforce org**, enter the **Contact email**, and choose **Find contacts**. Select a matching **Contact / Experience user**, choose an **Experience network** loaded from that org, and select **Generate login URL**.
 
@@ -73,7 +94,7 @@ The contact picker shows full names, account names when available, active userna
 
 The tool performs Contact, Network, User, and Organization lookups directly through Salesforce APIs, revalidating that the selected active user belongs to the chosen contact and still matches the email before generating the URL. The authenticated admin must have permission to query these records and use Salesforce's Login As functionality. Network membership, session restrictions, and Login As permissions remain enforced by Salesforce.
 
-**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL always contains the authenticated session credential (`sid`) and is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
+**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL contains the authenticated session credential. It is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
 
 ## Settings
 
@@ -87,6 +108,11 @@ Search VS Code settings for **Salesforce Assist Buddy**.
 | `salesforceAssistBuddy.traceFlagExpirationInterval` | `15` | Trace-flag expiration interval in minutes; minimum 5. |
 | `salesforceAssistBuddy.showOutputOnStart` | `true` | Show the diagnostic output channel during startup. |
 | `salesforceAssistBuddy.debugLevel` | `InternalAll` | Salesforce debug level; also supports `SFDC_DevConsole`. |
+| `salesforceAssistBuddy.apexDebugLogViewer.sourcePath` | `<workspace>/force-app/main/default/classes` | Path to Apex source folder for source navigation in Apex Debug Log Viewer. Class/method names are colored and Ctrl+clickable when source is found. |
+| `salesforceAssistBuddy.logViewer.defaultOpenIn` | `editor` | Where a downloaded log opens when clicked: `editor` (default VS Code editor) or `apexDebugLogViewer` (Apex Debug Log Viewer). |
+| `salesforceAssistBuddy.apexDebugLogViewer.theme` | `system` | Theme for Apex Debug Log Viewer: `system` (follows OS), `light`, or `dark`. Toggle via the `🌓 Theme` button in the viewer header. |
+| `salesforceAssistBuddy.apexDebug.sfCliPath` | `""` | Full path to the Salesforce CLI executable (`sf`/`sfdx`). Leave empty to auto-detect from workspace `node_modules/.bin`, PATH, login shell, or well-known install locations. |
+| `salesforceAssistBuddy.apexDebug.targetOrg` | `""` | Optional target org username or alias (`--target-org`) for CLI commands when loading debug logs from an org. |
 
 ## Diagnostics
 
@@ -102,7 +128,7 @@ The extension removes files older than 48 hours from its extension-specific log 
 npm.cmd ci
 npm.cmd test
 npm.cmd run compile
-npx.cmd --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.0.0.vsix
+npx --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.3.1.vsix
 ```
 
 On other platforms, use `npm` and `npx`. `npm test` runs TypeScript validation and the Node-based command, settings, logger, and SOQL query tests. `npm run compile` creates the bundled extension in `out`.
@@ -111,10 +137,19 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 
 ## Repository Identity
 
-- Extension: `bill.salesforce-assist-buddy`.
-- Version: `1.2.1`.
+- Extension: `Anmol.salesforce-assist-buddy`.
+- Version: `1.3.1`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
+
+## Documentation
+
+Step-by-step user guides for each tool:
+
+- [Log Viewer](docs/log-viewer.md)
+- [Query Runner (SOQL / SOSL)](docs/query-runner.md)
+- [Apex Debug Log Viewer](docs/apex-debug-log-viewer.md)
+- [Experience Login URL](docs/experience-login.md)
 
 ## Releases
 

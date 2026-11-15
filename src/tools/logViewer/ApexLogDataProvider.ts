@@ -19,6 +19,7 @@ export class LogDataProvider implements vscode.Disposable {
 
     private logs: ApexLog[] = [];
     private filteredLogs: ApexLog[] = [];
+    private searchText: string = '';
     private autoRefreshScheduledId?: NodeJS.Timeout;
     private autoRefreshPaused: boolean = true;
     private isRefreshing: boolean = false;
@@ -90,8 +91,7 @@ export class LogDataProvider implements vscode.Disposable {
                 void logger.run('Provider.initializeTraceFlag', () => ensureTraceFlag(this.connection, this.currentUserId!))
                     .catch(error => logger.error('Provider.initializeTraceFlag', 'Trace flag setup failed; existing logs remain available', error));
             }
-            // Pull logs as soon as the provider is initialized, not only when the panel becomes visible.
-            await this.refreshLogs(true, false);
+            // Do NOT call refreshLogs here or anywhere except when panel is visible.
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.error('Provider.initialize', 'Initialization incomplete; trace flag may not be active', error);
@@ -179,6 +179,9 @@ export class LogDataProvider implements vscode.Disposable {
         if (typesChanged) {
             void this.context.workspaceState.update('logViewer.operationTypes', [...this.operationTypes])
                 .then(undefined, error => logger.warn('Log Viewer.filters', 'Could not save discovered operation types', error));
+        }
+        if (isInitialLoad) {
+            this.searchText = '';
         }
         this._filterLogs();
     }
@@ -316,11 +319,27 @@ export class LogDataProvider implements vscode.Disposable {
         await this.context.workspaceState.update('logViewer.selectedOperationTypes', this.selectedOperationTypes);
     }
 
-    // Filter logs by operation type.
+    public setSearchFilter(text: string) {
+        this.searchText = text;
+        this._filterLogs();
+        this._notifyDataChange(false);
+    }
+
+    // Clear the log filter and notify the panel. TODO: Currently unused.
+    public clearSearch() {
+        this.searchText = '';
+        this._filterLogs();
+        this._notifyDataChange(false);
+    }
+
+    // Filter logs by the search text.
     private _filterLogs() {
+        const searchLower = this.searchText.toLowerCase();
         this.filteredLogs = this.logs.filter(log => {
             if (this.selectedOperationTypes !== null && !this.selectedOperationTypes.includes(log.operation)) return false;
-            return true;
+            const operation = log.operation.toLowerCase();
+            const user = log.user.toLowerCase();
+            return operation.includes(searchLower) || user.includes(searchLower);
         });
     }
 
@@ -380,8 +399,6 @@ export class LogDataProvider implements vscode.Disposable {
             const config = getConfiguration();
             await config.update('currentUserOnly', false, vscode.ConfigurationTarget.Global);
         }
-        // Pull logs immediately after switching orgs so the new org's logs appear right away.
-        await this.refreshLogs(true, false);
 
         // Refresh logs using the new connection.
         await this.refreshLogs(true, false);

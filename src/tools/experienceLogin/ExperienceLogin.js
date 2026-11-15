@@ -80,14 +80,13 @@
         clearContacts();
     });
     findContacts.addEventListener('click', () => {
-            const emailValue = email.value.trim();
-            if (emailValue.length === 0 || /\s/.test(emailValue)) return;
-            invalidate();
-            clearContacts();
-            setBusy(true);
-            status.textContent = 'Finding matching contacts and active Experience users...';
-            vscode.postMessage({ command: 'findContacts', username: selectedUsername, email: emailValue });
-        });
+        if (!email.reportValidity()) return;
+        invalidate();
+        clearContacts();
+        setBusy(true);
+        status.textContent = 'Finding matching contacts and active Experience users...';
+        vscode.postMessage({ command: 'findContacts', username: selectedUsername, email: email.value.trim() });
+    });
     contact.addEventListener('change', () => {
         invalidate();
         contact.title = contact.selectedOptions[0]?.textContent || '';

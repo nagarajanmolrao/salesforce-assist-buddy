@@ -68,19 +68,11 @@ export class ExperienceLoginService {
     }
 
     public async listNetworks(username: string): Promise<{ org: string; networks: ExperienceNetwork[] }> {
-        try {
-            const result = await this.orgService.run(username, async connection =>
-                await connection.query<{ Id: string; Name: string }>('SELECT Id, Name FROM Network ORDER BY Name').autoFetch(true).maxFetch(10000)
-            );
-            if (!result.done) throw new Error('The network list exceeded 10,000 records. Contact your Salesforce administrator.');
-            return { org: username, networks: result.records.map(network => ({ id: network.Id, name: network.Name })) };
-        } catch (error) {
-            const errorCode = (error as { errorCode?: string })?.errorCode;
-            if (errorCode === 'INVALID_TYPE' || String(error).includes('sObject type \'Network\' is not supported')) {
-                throw new Error('Experience Cloud networks are not available for this org. This org may not have Experience Cloud enabled.');
-            }
-            throw error;
-        }
+        const result = await this.orgService.run(username, async connection =>
+            await connection.query<{ Id: string; Name: string }>('SELECT Id, Name FROM Network ORDER BY Name').autoFetch(true).maxFetch(10000)
+        );
+        if (!result.done) throw new Error('The network list exceeded 10,000 records. Contact your Salesforce administrator.');
+        return { org: username, networks: result.records.map(network => ({ id: network.Id, name: network.Name })) };
     }
 
     public async findContacts(
@@ -90,50 +82,53 @@ export class ExperienceLoginService {
         const normalizedEmail = validateEmail(email);
 
         return this.orgService.run(username, async connection => {
-            const users = await connection.query<{
+            const escapedEmail = escapeSoqlText(normalizedEmail);
+            const contacts = await connection.query<{
                 Id: string;
                 Name: string;
-                Username: string;
-                Email: string;
-                ContactId?: string | null;
+                Account?: { Name?: string } | null;
             }>(
-                `SELECT Id, Name, Username, Email, ContactId
-             FROM User
-             WHERE Email LIKE '%${escapeSoqlText(normalizedEmail)}%'
-             AND IsActive = true
-             ORDER BY Username, Id
-             LIMIT 201`
+                `SELECT Id, Name, Account.Name FROM Contact WHERE Email = '${escapedEmail}' ORDER BY Id LIMIT 101`
             );
 
-            if (users.records.length > 200) {
-                throw new Error(
-                    'More than 200 active users match this email. Review duplicate user accounts in Salesforce.'
-                );
+            if (contacts.records.length > 100) {
+                throw new Error('More than 100 contacts');
             }
 
-            return users.records.map(user => {
-                if (!user.ContactId) {
-                    throw new Error(`User ${user.Id} is missing ContactId.`);
-                }
+            if (contacts.records.length === 0) {
+                return [];
+            }
 
+            contacts.records.sort((a, b) => a.Id.localeCompare(b.Id));
+
+            const contactIds = contacts.records.map(c => `'${escapeSoqlText(c.Id)}'`).join(',');
+            const users = await connection.query<{
+                Id: string;
+                ContactId: string;
+                Username: string;
+            }>(
+                `SELECT Id, ContactId, Username FROM User WHERE ContactId IN (${contactIds}) AND IsActive = true`
+            );
+
+            const userMap = new Map<string, { Id: string; Username: string }>();
+            for (const user of users.records) {
+                if (user.ContactId) userMap.set(user.ContactId, user);
+            }
+
+            return contacts.records.map(contact => {
+                const user = userMap.get(contact.Id);
                 return {
-                    contactId: user.ContactId,
-                    contactName: user.Name,
-                    userId: user.Id,
-                    username: user.Username
+                    contactId: contact.Id,
+                    contactName: contact.Name,
+                    accountName: contact.Account?.Name,
+                    userId: user?.Id,
+                    username: user?.Username
                 };
             });
-
         });
     }
 
-    public async generate(
-        username: string,
-        email: string,
-        networkId: string,
-        contactId: string,
-        userId: string
-    ): Promise<{ url: string }> {
+    public async generate(username: string, email: string, networkId: string, contactId: string, userId: string): Promise<string> {
         const normalizedEmail = validateEmail(email);
         if (!/^0DB[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(networkId)) throw new Error('Select an Experience Cloud network.');
         if (!/^003[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(contactId) ||
@@ -144,7 +139,7 @@ export class ExperienceLoginService {
         return this.orgService.run(username, async connection => {
             const [networks, users, organizations] = await Promise.all([
                 connection.query(`SELECT Id, Name FROM Network WHERE Id = '${networkId}' LIMIT 2`),
-                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Id = '${userId}' AND ContactId = '${contactId}' AND IsActive = true LIMIT 2`),
+                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Contact.Email = '${escapeSoqlText(normalizedEmail)}' AND IsActive = true LIMIT 2`),
                 connection.query('SELECT Id FROM Organization LIMIT 1')
             ]);
             if (networks.records.length !== 1) throw new Error('The selected network is unavailable. Refresh the network list.');
@@ -154,11 +149,9 @@ export class ExperienceLoginService {
             }
             const organization = organizations.records[0] as { Id: string } | undefined;
             if (!organization) throw new Error('Could not determine the Salesforce organization.');
-            
-            const url = buildExperienceLoginUrl(
+            return buildExperienceLoginUrl(
                 connection.instanceUrl, connection.accessToken || '', organization.Id, networkId, user.Id, user.ContactId
             );
-            return { url };
         });
     }
 }

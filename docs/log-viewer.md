@@ -1,58 +1,29 @@
-# Log Viewer — User Guide
+# Log Viewer Guide
 
-Browse, filter, and inspect Apex debug logs from authenticated Salesforce orgs directly in VS Code.
+The Log Viewer is the default tool in the Salesforce Assist Buddy panel. It helps you browse recent Apex debug logs, filter them, and open individual logs for detailed inspection.
 
-## What this tool does
+## Opening Log Viewer
 
-The **Log Viewer** lists recent Apex logs for your connected org, lets you filter and sort them by user, operation, time, status, size, or duration, and opens individual logs in the **VS Code editor** for inspection.
+Open the **Salesforce Assist Buddy** panel from the VS Code activity bar or command palette. Log Viewer is selected by default.
 
-## Prerequisites
+## Refreshing Logs
 
-- An authenticated Salesforce org via the Salesforce CLI (`sf org login ...`)
-- VS Code 1.100.0 or later
+- Click **Refresh** to fetch the latest Apex logs from the org.
+- Auto-refresh runs while the panel is visible (configurable via `salesforceAssistBuddy.autoRefresh`).
+- Refresh interval defaults to 5000 ms (minimum 1000 ms).
 
-## Step-by-step
+## Filtering Logs
 
-### 1. Open the Log Viewer
+- **Log types**: Select exact Operation values (e.g., `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`). New values are discovered automatically as logs arrive.
+- **Current user only**: Limit logs to the connected user.
+- **Text search**: Filter logs by user, operation, time, status, size, or duration.
 
-Open the **Salesforce Assist Buddy** panel from the VS Code activity bar. The Log Viewer opens by default and lists the latest Apex logs for your configured target org.
+## Opening a Log
 
-### 2. Refresh logs
+Click a log row to download and cache it in the workspace `.logs` directory. By default it opens in the VS Code editor. Set `salesforceAssistBuddy.logViewer.defaultOpenIn` to `apexDebugLogViewer` to open it directly in the Apex Debug Log Viewer.
 
-Click **Refresh** to pull the latest logs from the org. Logs are also refreshed automatically when the panel is visible if auto-refresh is enabled (default: every 5000 ms).
+## Clearing Logs
 
-### 3. Filter by user
+Use **Clear downloaded logs** to remove cached log files locally. Remote log deletion requires confirmation.
 
-Restrict results to the connected user only, or include other users. This helps you focus on your own debug logs or investigate issues for another user like **bill**.
-
-### 4. Filter by log type
-
-Select one or more **Log types** (Operation values) beside the tool selector. Starter options include:
-
-- `UniversalPerfLogger`
-- `/webruntime/api/execute`
-- `/aura`
-- Common Apex operations
-
-New Operation values are added automatically as logs arrive and are remembered per workspace. **All types** includes future types automatically; explicit selections do not.
-
-### 5. Sort
-
-Click column headers to sort by user, operation, time, status, size, or duration. Column widths are saved and restored across reloads.
-
-### 6. Open a log
-
-Click a log to download and cache it in the workspace `.logs` directory. The log opens in the VS Code editor for inspection.
-
-### 7. Clean up
-
-- Clear downloaded files locally from the `.logs` directory
-- Delete remote Apex logs after confirmation to free org storage
-
-## Screenshots
-
-![Log Viewer showing sample users, operations, log durations, and three selected log types](./screenshots/log-viewer.png)
-
----
-
-*Part of Salesforce Assist Buddy for VS Code.*
+![Log Viewer](screenshots/log-viewer.png)

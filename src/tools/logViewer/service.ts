@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { LogDataProvider } from './ApexLogDataProvider';
 import { ApexLog } from './ApexLogWrapper';
-import { ApexLogFileManager } from './ApexLogFileManager';
 import { getConnection, retryOnSessionExpire } from '../../core/connection';
 import { logger } from '../../core/logger';
 import { getConfiguration } from '../../core/extensionIdentity';
@@ -68,11 +67,7 @@ export async function openLog(data: { id: string }) {
             Request: result.Request ?? ''
         }, provider.connection);
 
-        // Always download and save the log to .logs folder, regardless of viewer.
-        const storagePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        const logFileManager = new ApexLogFileManager(storagePath);
-        await logFileManager.showLog(log);
-
+        await provider.logFileManager.showLog(log);
         getExistingLogDataProvider()?.markLogAsOpened(log.id);
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
