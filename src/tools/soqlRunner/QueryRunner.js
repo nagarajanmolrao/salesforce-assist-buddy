@@ -3,7 +3,6 @@
     const byId = id => document.getElementById(id);
     const orgSelect = byId('org-select');
     const queryTypeSelect = byId('query-type-select');
-    const querySelect = byId('query-select');
     const queryNameInput = byId('query-name');
     const queryEditor = byId('query-editor');
     const parameterFields = byId('parameter-fields');
@@ -24,6 +23,11 @@
     let initialized = false;
     let pendingSelectionId;
     let pendingLibraryAction = '';
+    let dropdownOpen = false;
+    const dropdownWrapper = byId('query-select-wrapper');
+    const dropdownInput = byId('query-select');
+    const dropdownToggle = byId('query-select-toggle');
+    const dropdownList = byId('query-select-options');
     const previousState = vscode.getState() || {};
     let selectedUsername = previousState.selectedUsername || '';
     let selectedQueryType = previousState.selectedQueryType || 'soql';
@@ -68,20 +72,60 @@
     }
 
     function renderQueryOptions(selectedId = '') {
-        querySelect.replaceChildren();
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = 'Select a saved query';
-        querySelect.appendChild(placeholder);
-            const filteredQueries = queries.filter(query => query.queryType === selectedQueryType);
-            for (const query of filteredQueries) {
-                const option = document.createElement('option');
-                option.value = query.id;
-                option.textContent = query.name;
-                querySelect.appendChild(option);
+        dropdownList.replaceChildren();
+        const filteredQueries = queries.filter(query => query.queryType === selectedQueryType);
+        for (const query of filteredQueries) {
+            const item = document.createElement('li');
+            item.className = 'dropdown-option';
+            item.role = 'option';
+            item.id = 'option_' + query.id;
+            item.textContent = query.name;
+            item.dataset.id = query.id;
+            if (query.id === selectedId) {
+                item.classList.add('selected');
+                dropdownInput.value = query.name;
+                dropdownInput.setAttribute('aria-activedescendant', item.id);
             }
-            querySelect.value = selectedId;
+            item.addEventListener('click', () => {
+                selectQuery(query);
+                closeDropdown();
+                dropdownInput.focus();
+            });
+            dropdownList.appendChild(item);
         }
+        if (filteredQueries.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'dropdown-option placeholder';
+            item.textContent = 'No saved queries';
+            dropdownList.appendChild(item);
+        }
+        if (!selectedId && filteredQueries.length) {
+            dropdownInput.value = '';
+            dropdownInput.removeAttribute('aria-activedescendant');
+        }
+        dropdownWrapper.setAttribute('aria-expanded', 'false');
+        dropdownList.hidden = true;
+        dropdownOpen = false;
+    }
+
+    function openDropdown() {
+        renderQueryOptions(activeQuery?.id || '');
+        dropdownList.hidden = false;
+        dropdownWrapper.setAttribute('aria-expanded', 'true');
+        dropdownToggle.setAttribute('aria-expanded', 'true');
+        dropdownOpen = true;
+    }
+
+    function closeDropdown() {
+        dropdownList.hidden = true;
+        dropdownWrapper.setAttribute('aria-expanded', 'false');
+        dropdownToggle.setAttribute('aria-expanded', 'false');
+        dropdownOpen = false;
+    }
+
+    function toggleDropdown() {
+        if (dropdownOpen) closeDropdown(); else openDropdown();
+    }
 
     function extractParameterNames(queryString) {
         const names = new Set();
@@ -182,16 +226,21 @@
 
     function selectQuery(query) {
         activeQuery = query || null;
-        querySelect.value = query?.id || '';
         queryNameInput.value = query?.name || '';
-            queryEditor.value = query?.query || '';
-            queryTypeSelect.value = query?.queryType || 'soql';
-            selectedQueryType = query?.queryType || 'soql';
-            parameterFields.replaceChildren();
-            renderParameters();
-            byId('delete-query').disabled = !query;
-            saveState();
+        dropdownInput.value = query?.name || '';
+        if (query) {
+            dropdownInput.setAttribute('aria-activedescendant', 'option_' + query.id);
+        } else {
+            dropdownInput.removeAttribute('aria-activedescendant');
         }
+        queryEditor.value = query?.query || '';
+        queryTypeSelect.value = query?.queryType || 'soql';
+        selectedQueryType = query?.queryType || 'soql';
+        parameterFields.replaceChildren();
+        renderParameters();
+        byId('delete-query').disabled = !query;
+        saveState();
+    }
 
     function updateQueryLibrary(nextQueries, selectedId) {
         queries = nextQueries;
@@ -312,23 +361,47 @@
             selectedQueryType = queryTypeSelect.value;
             saveState();
             renderQueryOptions(activeQuery?.id || '');
-            const selected = queries.find(query => query.id === querySelect.value);
+            const selected = queries.find(query => query.id === activeQuery?.id);
             if (selected) {
                 selectQuery(selected);
             }
         });
 
-        querySelect.addEventListener('change', () => {
-            selectQuery(queries.find(query => query.id === querySelect.value));
+        dropdownToggle.addEventListener('click', toggleDropdown);
+        dropdownInput.addEventListener('focus', openDropdown);
+        dropdownInput.addEventListener('input', () => {
+            const term = dropdownInput.value.toLowerCase();
+            dropdownList.querySelectorAll('.dropdown-option').forEach(opt => {
+                opt.hidden = opt.classList.contains('placeholder') || opt.textContent.toLowerCase().includes(term);
+            });
+        });
+        dropdownInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const active = document.getElementById('option_' + activeQuery?.id);
+                if (active && !active.hidden) {
+                    selectQuery(queries.find(q => q.id === active.dataset.id));
+                    closeDropdown();
+                    dropdownInput.focus();
+                }
+            } else if (e.key === 'Escape') {
+                closeDropdown();
+            }
+        });
+        dropdownInput.addEventListener('blur', () => {
+            // small delay to allow click on dropdown option to register
+            setTimeout(() => { if (!dropdownList.matches(':hover')) closeDropdown(); }, 150);
         });
 
-        queryEditor.addEventListener('input', renderParameters);
+        document.addEventListener('click', e => {
+            if (dropdownOpen && !dropdownWrapper.contains(e.target)) closeDropdown();
+        });
 
-    byId('new-query').addEventListener('click', () => {
-        querySelect.value = '';
-        selectQuery(null);
-        setStatus('');
-    });
+        byId('new-query').addEventListener('click', () => {
+            dropdownInput.value = '';
+            selectQuery(null);
+            setStatus('');
+        });
 
     byId('save-query').addEventListener('click', () => {
         const query = createQuery();
@@ -379,7 +452,7 @@
             selectedUsername = previousState.selectedUsername || message.defaultUsername || '';
             renderOrgs(message.defaultUsername);
             renderQueryOptions(previousState.selectedQueryId || '');
-            const selected = queries.find(query => query.id === querySelect.value) || queries[0];
+            const selected = queries.find(query => query.id === previousState.selectedQueryId) || queries[0];
             selectQuery(selected);
             setStatus(message.orgError || (message.queryFile ? `Query library: ${message.queryFile}` : 'Ready'), message.orgError ? 'error' : '');
         } else if (message.type === 'orgs') {

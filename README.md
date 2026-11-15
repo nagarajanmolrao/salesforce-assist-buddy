@@ -17,14 +17,15 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) **version 2.136.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
 - Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
 ## Install Locally
 
 1. Build the VSIX using the development commands below.
-2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.0.vsix`.
+
+2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.1.vsix`.
 3. Open an authenticated Salesforce project and the **Salesforce Assist Buddy** panel.
 
 The GitHub repository is configured for documentation links; Marketplace publication is not configured.
@@ -34,7 +35,7 @@ The GitHub repository is configured for documentation links; Marketplace publica
 - Refresh the latest logs manually or enable automatic refresh while the panel is visible.
 - Restrict results to the connected user or include other users.
 - Filter and sort logs by user, operation, time, status, size, or duration.
-- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter applies to the latest 100 fetched records, not the entire org history.
+- Select multiple **Log types** beside the tool selector to include exact Operation values. Starter options include `UniversalPerfLogger`, `/webruntime/api/execute`, `/aura`, and common Apex operations. New Operation values are added automatically as logs arrive and remembered per workspace, along with your selection. **All types** includes future types automatically; explicit selections do not. This filter combines with text search and applies to the latest 100 fetched records, not the entire org history.
 - Open a log to download and cache it in the workspace `.logs` directory.
 - Clear downloaded files locally or delete remote Apex logs after confirmation.
 
@@ -43,6 +44,8 @@ Log Viewer filters and title-bar actions follow the panel's selected tool and vi
 ![Log Viewer showing sample users, operations, log durations, and three selected log types](docs/screenshots/log-viewer.png)
 
 ## Apex Debug Log Viewer
+
+![Apex Debug Log Viewer showing call stack tree, log lines, filter chips, and theme toggle](docs/screenshots/apex-debug-log-viewer.png)
 
 Open a downloaded `.log` file and select **Apex Debug Log Viewer** from the editor title bar (or via the command palette). It renders the Apex debug log with:
 
@@ -58,11 +61,17 @@ By default, clicking a log in Log Viewer opens it in the VS Code editor. Set `sa
 
 ## Trace Flags
 
-See the [Trace Flags user guide](./docs/trace-flags.md) for step-by-step instructions.
+The flag-icon command, **Set TraceFlag for User**, opens a searchable list of up to 100 active users. Typing any part of a name or a username prefix queries the org after a 300 ms pause rather than downloading every user.
+
+The person-add command, **Set TraceFlag by Username or Email**, first prompts for a keyword. Press Enter to search using `Username LIKE '%keyword%' OR Email LIKE '%keyword%'`, then choose a matching user. Results are limited to 100 users; narrow the keyword when necessary.
+
+Both commands exclude the current user from the picker and check trace-flag status only for displayed users. Choosing a user enables their trace flag, or disables it when an active flag already exists. Enabled flags are renewed automatically. The current user's trace flag is initialized separately.
+
+Log Viewer identifies the current user before querying, but sets up their trace flag in the background so existing logs can appear without waiting for trace-flag creation. Initial log retrieval starts once the webview is ready.
+
+The trace-flag cleanup command removes expired flags for other users. Its existing command ID is `salesforce-assist-buddy.deleteAllTraceFlagsExceptCurrent`.
 
 ## Query Runner
-
-See the [Query Runner user guide](./docs/query-runner.md) for step-by-step instructions.
 
 Select **Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available. The list is cached for the editor session and refreshed only when requested. Queries run through a cached Salesforce Core connection for the selected username, independently of the default org used by Log Viewer.
 
@@ -78,8 +87,6 @@ Query results are shown in a sortable table with global search and per-column fi
 
 ## Experience Login URL
 
-See the [Experience Login user guide](./docs/experience-login.md) for step-by-step instructions.
-
 Select **Experience Login URL** from the tool dropdown to open its editor. Choose an authenticated **Salesforce org**, enter the **Contact email**, and choose **Find contacts**. Select a matching **Contact / Experience user**, choose an **Experience network** loaded from that org, and select **Generate login URL**.
 
 The org dropdown initially uses the default authenticated org and remembers your selection within the editor. **Refresh orgs** reloads CLI authentication entries; **Refresh networks** reloads the selected org's networks. Switching orgs clears contact selections and generated URLs, reloads networks, and uses an explicitly username-scoped connection for every lookup and URL generation. It never changes the configured default org or the Log Viewer's connection and trace flags.
@@ -88,7 +95,7 @@ The contact picker shows full names, account names when available, active userna
 
 The tool performs Contact, Network, User, and Organization lookups directly through Salesforce APIs, revalidating that the selected active user belongs to the chosen contact and still matches the email before generating the URL. The authenticated admin must have permission to query these records and use Salesforce's Login As functionality. Network membership, session restrictions, and Login As permissions remain enforced by Salesforce.
 
-**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL always contains the authenticated session credential (`sid`) and is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
+**Copy URL** copies the result explicitly; **Open in browser** asks for confirmation before opening it. The generated frontdoor URL contains the authenticated session credential. It is held only in extension memory, never written to logs, query libraries, or webview state, and cleared when inputs change or the editor closes. Treat the clipboard and browser history as sensitive. Browser login may be refused by org session policies or API-only sessions; generation does not bypass those restrictions.
 
 ## Settings
 
@@ -122,7 +129,7 @@ The extension removes files older than 48 hours from its extension-specific log 
 npm.cmd ci
 npm.cmd test
 npm.cmd run compile
-npx.cmd --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.3.0.vsix
+npx --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.3.1.vsix
 ```
 
 On other platforms, use `npm` and `npx`. `npm test` runs TypeScript validation and the Node-based command, settings, logger, and SOQL query tests. `npm run compile` creates the bundled extension in `out`.
@@ -132,7 +139,7 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 ## Repository Identity
 
 - Extension: `Anmol.salesforce-assist-buddy`.
-- Version: `1.3.0`.
+- Version: `1.3.1`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
 

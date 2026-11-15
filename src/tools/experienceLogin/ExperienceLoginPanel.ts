@@ -47,8 +47,7 @@ export class ExperienceLoginPanel implements vscode.Disposable {
     }
 
     private async handleMessage(message: any) {
-            console.log('[panel] handleMessage called', { command: message?.command, hasLoginUrl: !!this.loginUrl });
-            let operationRevision = this.revision;
+        let operationRevision = this.revision;
         try {
             if (message?.command === 'ready' || message?.command === 'refreshOrgs') {
                 this.loginUrl = undefined;
@@ -57,10 +56,10 @@ export class ExperienceLoginPanel implements vscode.Disposable {
                 operationRevision = revision;
                 const selection = await this.service.listOrgs(message.command === 'refreshOrgs');
                 if (this.disposed || revision !== this.revision) return;
-                        const username = selection.orgs.some(org => org.username === message.username)
-                            ? message.username as string : selection.defaultUsername;
-                        this.selectedUsername = username;
-                        await this.panel.webview.postMessage({ type: 'orgs', ...selection, selectedUsername: username });
+                const username = selection.orgs.some(org => org.username === message.username)
+                    ? message.username as string : selection.defaultUsername;
+                this.selectedUsername = username;
+                await this.panel.webview.postMessage({ type: 'orgs', ...selection, selectedUsername: username });
                 const result = await this.service.listNetworks(username);
                 if (!this.disposed && revision === this.revision) {
                     await this.panel.webview.postMessage({ type: 'networks', ...result });
@@ -100,19 +99,16 @@ export class ExperienceLoginPanel implements vscode.Disposable {
                     throw new Error('Find contacts, select an active Experience user, and select a network.');
                 }
                 logger.info('Experience Login.generate', 'Generating a login URL for the selected network');
-                const { url } = await this.service.generate(
-                    username, message.email, message.networkId, message.contactId, message.userId
-                );
+                const url = await this.service.generate(username, message.email, message.networkId, message.contactId, message.userId);
                 if (!this.disposed && revision === this.revision) {
                     this.loginUrl = url;
                     await this.panel.webview.postMessage({ type: 'generated' });
                     logger.info('Experience Login.generate', 'Login URL ready; session credentials are not logged or persisted');
                 }
             } else if (message?.command === 'copy') {
-                            const loginUrl = this.loginUrl;
-                            if (!loginUrl) throw new Error('Generate a login URL first.');
-                            await vscode.env.clipboard.writeText(loginUrl);
-                            await this.panel.webview.postMessage({ type: 'copied' });
+                if (!this.loginUrl) throw new Error('Generate a login URL first.');
+                await vscode.env.clipboard.writeText(this.loginUrl);
+                await this.panel.webview.postMessage({ type: 'copied' });
             } else if (message?.command === 'open') {
                 const url = this.loginUrl;
                 if (!url) throw new Error('Generate a login URL first.');
@@ -124,7 +120,6 @@ export class ExperienceLoginPanel implements vscode.Disposable {
                     const opened = await vscode.env.openExternal(vscode.Uri.parse(url));
                     if (!opened) throw new Error('Could not open the browser. Copy the URL and open it manually.');
                 }
-                console.log('[panel] open command completed successfully');
             }
         } catch (error) {
             if (this.disposed || operationRevision !== this.revision) return;

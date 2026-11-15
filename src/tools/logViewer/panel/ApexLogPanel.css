@@ -185,11 +185,11 @@ body {
     display: flex;
     cursor: pointer;
     min-height: 22px;
-    align-items: flex-start;
+    align-items: center;
     position: relative;
     color: var(--vscode-foreground);
     min-width: min-content;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     /* Add transform-origin for smoother updates */
     transform-origin: center center;
 }
@@ -208,14 +208,15 @@ body {
 
 .grid-cell {
     padding: 2px 6px;
-    overflow-wrap: break-word;
-    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     box-sizing: border-box;
     position: relative;
     flex: 0 0 auto;
     line-height: 18px;
     width: 0; /* Force cell to respect width and not grow */
-    min-width: 0; /* Allow content to wrap */
+    min-width: 0; /* Allow content to be truncated */
     transition: all 0.2s ease;
 }
 

@@ -1,6 +1,6 @@
 # Change Log
 
-## [1.3.0] - 2026-11-15
+## [1.3.1] - 2026-11-15
 
 ### Features
 - **Query Runner** — The saved query dropdown is now searchable. Type to filter saved queries as the library grows; press Enter or click a match to select it.
@@ -23,6 +23,39 @@
 - **Apex Debug Log Viewer Log Tags modal** — Added an **Apply** button. Checkbox toggles, Show All, and Hide All no longer apply filtering immediately; clicking Apply applies the filter, updates highlight counts, and closes the modal.
 - **Apex Debug Log Viewer core rendering** — Aligned rendering with parserTool: replaced `renderRestWithSource()` with `applyHl(stripSids(ll.rest))`, removed the hover source button, removed ctrl+click handlers from tree node click events, and removed the extra `requestAnimationFrame` scroller refresh from `renderLogView`.
 - **Apex Debug Log Viewer highlight slots** — Removed the separate visible `<input type="color">` box. Each slot now has only the colored dot which opens the hidden color input on click.
+
+## [1.2.3] - Unreleased
+
+### Changed
+- **Log Details removed** — The Log Details feature (dedicated editor webview for inspecting Apex debug log events) has been completely removed from the extension. Logs now open directly in the VS Code editor when clicked. Removed the `salesforceAssistBuddy.openLogsInApexLogViewer` setting, the Log Details command, editor title menu item, and all related source files.
+- **Log Viewer line wrapping** — Horizontal lines in log grid cells now wrap instead of being clipped, improving readability of long messages.
+- **Search removed from Log Viewer** — The inline search field and Ctrl+F search functionality have been removed from the Log Viewer panel. Operation type filtering remains available.
+
+## [1.2.1] - 2026-11-05
+
+### Changed
+- **Experience Login URL** — Removed the browser selection dropdown and Incognito/Private mode toggle. The tool now always generates a session-bearing frontdoor URL (with `sid`), matching v1.0.0/v1.1.0 URL construction. "Open in browser" always opens the session-bearing URL.
+- **URL construction reverted** — `buildExperienceLoginUrl()` always includes the session ID; the conditional `includeSessionId` parameter was removed.
+
+## [1.2.0] - 2026-11-04
+
+### Features
+- **Experience Login URL** — Added browser selection dropdown with common browsers (Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, Arc)
+- **Incognito/Private Mode Toggle** — Choose whether to open the login URL in incognito/private mode or normal mode
+  - When enabled: Opens the session-bearing URL in an incognito/private window of the selected browser
+  - When disabled: Generates a URL without the session ID and opens it in a normal browser window
+- URL handling updated to support both modes with appropriate browser launch commands
+
+### Changed
+- Updated Experience Login webview with new browser selection controls
+- **Network sObject error handling** — When an org does not support Experience Cloud, `listNetworks()` now shows a friendly message instead of the raw `sObject type 'Network' is not supported` error
+- **Email validation relaxed** — Backend `validateEmail()` now only checks for non-empty, no-spaces, and max length; partial email lookups are supported via `LIKE` in the SOQL query
+
+### Log Viewer
+- **Log Details opens by default** — Clicking a log now opens the Log Details editor webview instead of a raw `.log` text file
+- **Persistent column widths** — Column width adjustments in the Log Viewer grid are saved and restored across reloads
+- **Full debug content** — Long debug statements with serialized JSON now wrap in the Log Details table and show the full content on hover
+- **Faster initialization** — Logs are pulled immediately when the provider initializes and when switching orgs, without waiting for panel visibility
 
 ## [1.1.0] - 2026-10-30
 

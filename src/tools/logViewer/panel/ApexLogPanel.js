@@ -23,12 +23,13 @@
     let logViewerActive = true;
 
     function setLogViewerActive(active) {
-            logViewerActive = active;
-            operationFilter.hidden = !active;
-            if (!active) {
-                operationFilter.open = false;
-            }
+        logViewerActive = active;
+        operationFilter.hidden = !active;
+        if (!active) {
+            operationFilter.open = false;
+            document.getElementById('inline-search-bar').style.display = 'none';
         }
+    }
 
     function renderOperationFilter(filter) {
         if (!filter) return;
@@ -80,14 +81,12 @@
         toolSelector.value = activeToolId;
     }
 
-    // On load, clear cached log data but preserve column widths and other UI state.
+    // On load, always clear any cached data to ensure only fresh logs are shown
     try {
-        const currentState = vscode.getState() || {};
-        const existingColumnWidths = currentState.columnWidths || [];
         vscode.setState({
             data: [],
-            columnWidths: existingColumnWidths,
-            sortConfig: currentState.sortConfig || { field: null, ascending: true },
+            columnWidths: Array.from(columnWidths.entries()),
+            sortConfig,
             readLogIds: Array.from(readLogIds),
             activeToolId
         });
@@ -595,8 +594,52 @@
                 readLogIds.add(logId);
                 saveState();
             }
+        } else if (message.type === 'showSearchBox') {
+            showInlineSearchBox();
+        } else if (message.type === 'orgChanged') {
+            // Hide search bar on org change only
+            const searchBar = document.getElementById('inline-search-bar');
+            if (searchBar && searchBar.style.display === 'flex') {
+                searchBar.style.display = 'none';
+            }
         }
     });
+
+    // Debounce search so it is not triggered on every keystroke.
+    function debounce(fn, delay) {
+        let timer = null;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    function showInlineSearchBox() {
+        if (!logViewerActive) return;
+        const searchBar = document.getElementById('inline-search-bar');
+        const input = document.getElementById('inline-search-input');
+        if (searchBar && input) {
+            if (searchBar.style.display === 'flex') {
+                searchBar.style.display = 'none';
+                vscode.postMessage({ command: 'inlineSearch', text: '' });
+            } else {
+                searchBar.style.display = 'flex';
+                input.value = '';
+                input.focus();
+                // Use debounce for search
+                const debouncedSearch = debounce(() => {
+                    vscode.postMessage({ command: 'inlineSearch', text: input.value });
+                }, 200);
+                input.oninput = debouncedSearch;
+                input.onkeydown = (e) => {
+                    if (e.key === 'Escape') {
+                        searchBar.style.display = 'none';
+                        vscode.postMessage({ command: 'inlineSearch', text: '' });
+                    }
+                };
+            }
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         toolSelector?.addEventListener('change', () => {
@@ -615,6 +658,14 @@
         }
         if (lastData.length > 0) {
             updateGrid(lastData);
+        }
+    });
+
+    // Listen for Ctrl+F to open the search bar
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            showInlineSearchBox();
         }
     });
 })();
