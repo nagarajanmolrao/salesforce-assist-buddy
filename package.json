@@ -2,7 +2,7 @@
   "name": "salesforce-assist-buddy",
   "displayName": "Salesforce Assist Buddy",
   "description": "View and manage Salesforce developer logs with auto-refresh and filtering capabilities",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "publisher": "Anmol",
   "author": {
     "name": "Anmol"
@@ -70,6 +70,30 @@
             "InternalAll",
             "SFDC_DevConsole"
           ]
+        },
+        "salesforceAssistBuddy.apexDebugLogViewer.sourcePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the Salesforce Apex source folder (default: force-app/main/default/classes when empty). Used for source navigation in Apex Debug Log Viewer."
+        },
+        "salesforceAssistBuddy.logViewer.defaultOpenIn": {
+          "type": "string",
+          "enum": [
+            "editor",
+            "apexDebugLogViewer"
+          ],
+          "default": "editor",
+          "description": "Default view for opening a log: 'editor' opens in VS Code editor, 'apexDebugLogViewer' opens in Apex Debug Log Viewer."
+        },
+        "salesforceAssistBuddy.apexDebugLogViewer.theme": {
+          "type": "string",
+          "enum": [
+            "system",
+            "light",
+            "dark"
+          ],
+          "default": "system",
+          "description": "Color theme for the Apex Debug Log Viewer: 'system' follows the OS theme, 'light' forces light mode, 'dark' forces dark mode."
         }
       }
     },
@@ -154,9 +178,15 @@
         "category": "Salesforce Assist Buddy"
       },
       {
-        "command": "salesforce-assist-buddy.showLogDetails",
-        "title": "Log Details",
-        "icon": "$(list-flat)",
+        "command": "salesforce-assist-buddy.openApexDebugLogViewer",
+        "title": "Open Apex Debug Log Viewer",
+        "icon": "$(bug)",
+        "category": "Salesforce Assist Buddy"
+      },
+      {
+        "command": "salesforce-assist-buddy.openLogInApexDebugLogViewer",
+        "title": "Open Log in Apex Debug Log Viewer",
+        "icon": "$(file-text)",
         "category": "Salesforce Assist Buddy"
       }
     ],
@@ -210,11 +240,29 @@
       ],
       "editor/title": [
         {
-          "command": "salesforce-assist-buddy.showLogDetails",
-          "title": "Log Details",
-          "icon": "$(list-flat)",
-          "when": "resourceLangId =~ /log/ || resourceExtname =~ /\\.log/ || resourceFilename =~ /.*07LJW.*/ || resourceFilename =~ /.*\\d{2}-\\d{2}-\\d{4}_\\d{2}-\\d{2}.*/",
-          "group": "navigation@2"
+          "command": "salesforce-assist-buddy.openLogInApexDebugLogViewer",
+          "title": "Open in Apex Debug Log Viewer",
+          "icon": "$(file-text)",
+          "when": "resourceExtname =~ /\\.log/",
+          "group": "navigation@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "salesforce-assist-buddy.openLogInApexDebugLogViewer",
+          "title": "Open in Apex Debug Log Viewer",
+          "icon": "$(file-text)",
+          "when": "resourceExtname =~ /\\.log/",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "salesforce-assist-buddy.openLogInApexDebugLogViewer",
+          "title": "Open in Apex Debug Log Viewer",
+          "icon": "$(file-text)",
+          "when": "resourceExtname =~ /\\.log/",
+          "group": "navigation@3"
         }
       ]
     }
