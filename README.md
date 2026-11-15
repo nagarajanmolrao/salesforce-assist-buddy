@@ -24,6 +24,7 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Install Locally
 
 1. Build the VSIX using the development commands below.
+
 2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.1.vsix`.
 3. Open an authenticated Salesforce project and the **Salesforce Assist Buddy** panel.
 
