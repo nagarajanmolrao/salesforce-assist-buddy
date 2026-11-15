@@ -142,12 +142,6 @@
         "category": "Salesforce Assist Buddy"
       },
       {
-        "command": "salesforce-assist-buddy.showSearchBox",
-        "title": "Search Logs",
-        "icon": "$(search)",
-        "category": "Salesforce Assist Buddy"
-      },
-      {
         "command": "salesforce-assist-buddy.toggleAutoRefresh",
         "title": "Toggle Auto Refresh",
         "icon": "$(sync)",
@@ -192,11 +186,6 @@
     ],
     "menus": {
       "view/title": [
-        {
-          "command": "salesforce-assist-buddy.showSearchBox",
-          "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",
-          "group": "navigation@1"
-        },
         {
           "command": "salesforce-assist-buddy.refreshLogs",
           "when": "view == salesforceAssistBuddy.logs && salesforceAssistBuddy.logViewerActive",

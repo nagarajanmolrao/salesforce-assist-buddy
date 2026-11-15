@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { getConnection } from './core/connection';
-import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, showSearchBox, clearSearch, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
+import { setLogVisibility, deleteAllLogs, toggleAutoRefresh, showOptions, clearDownloadedLogs, setTraceFlagForUser, setTraceFlagBySearch, deleteAllTraceFlagsExceptCurrent } from './tools/logViewer/commands';
 import { ApexLogPanelProvider } from './tools/logViewer/panel/ApexLogPanelProvider';
 import { stopTraceFlagKeepAlive } from './tools/logViewer/TraceFlagManager';
 import { logger, outputChannel, startLogRetention } from './core/logger';
@@ -108,7 +108,6 @@ function createConfigWatcher(configPath: string): vscode.FileSystemWatcher {
                         const newConnection = await getConnection();
                         await logDataProvider!.updateConnection(newConnection);
                         progress.report({ message: 'Refreshing logs...' });
-                        await new Promise(res => setTimeout(res, 300));
                     });
                     logger.info('OrgChange', 'Connection updated and logs refreshed');
                     // Send orgChanged message to webview to close search bar
@@ -138,8 +137,6 @@ function registerCommands(context: vscode.ExtensionContext, provider: ApexLogPan
         ['toggleAutoRefresh', toggleAutoRefresh],
         ['deleteAllLogs', deleteAllLogs],
         ['showOptions', showOptions],
-        ['showSearchBox', showSearchBox],
-        ['clearSearch', clearSearch],
         ['clearDownloadedLogs', clearDownloadedLogs],
         ['setTraceFlagForUser', setTraceFlagForUser],
         ['setTraceFlagBySearch', setTraceFlagBySearch],

@@ -260,37 +260,6 @@ async function setRefreshInterval(config: vscode.WorkspaceConfiguration) {
     }
 }
 
-// Show the log search box.
-export async function showSearchBox() {
-    try {
-        const provider = await getLogDataProvider();
-        // Use the panel's search box.
-        const activeProvider = (provider as any).activeProvider;
-        if (activeProvider && typeof activeProvider.showSearchBoxInWebview === 'function') {
-            activeProvider.showSearchBoxInWebview();
-        } else {
-            logger.warn('Command.search', 'Search unavailable: the log panel provider is not ready');
-        }
-    } catch (error: any) {
-        const errorMessage = error?.message || 'Unknown error occurred';
-        logger.error('Command.search', 'Could not show log search', error);
-        vscode.window.showErrorMessage(`Failed to filter logs: ${errorMessage}`);
-    }
-}
-
-// Clear the log search filter. TODO: Currently unused.
-export async function clearSearch() {
-    try {
-        const provider = await getLogDataProvider();
-        provider.clearSearch();
-        vscode.window.showInformationMessage('Search filter cleared');
-    } catch (error: any) {
-        const errorMessage = error?.message || 'Unknown error occurred';
-        logger.error('Command.clearSearch', 'Could not clear the search filter', error);
-        vscode.window.showErrorMessage(`Failed to clear search: ${errorMessage}`);
-    }
-}
-
 // Clear locally downloaded logs.
 export async function clearDownloadedLogs() {
     const confirmation = await vscode.window.showWarningMessage(
