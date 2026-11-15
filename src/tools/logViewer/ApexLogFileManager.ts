@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as os from 'os';
 import { ApexLog } from './ApexLogWrapper';
 import { logger } from '../../core/logger';
 import { IApexLogPanelProvider } from './panel/IApexLogPanelProvider';
+import { getConfiguration } from '../../core/extensionIdentity';
+import { openLogContent } from '../apexDebugViewer/apexDebugViewerPanel';
 
 export class ApexLogFileManager {
 
@@ -38,8 +41,84 @@ export class ApexLogFileManager {
         return path.join(this.logsPath, this.getLogFileName(log));
     }
 
-    // Open the log in the editor.
+    // Open the log in the editor or Apex Debug Log Viewer based on configuration.
     public async showLog(log: ApexLog): Promise<void> {
+        const defaultOpenIn = getConfiguration().get<'editor' | 'apexDebugLogViewer'>('logViewer.defaultOpenIn') ?? 'editor';
+
+        if (defaultOpenIn === 'apexDebugLogViewer') {
+            // Open in Apex Debug Log Viewer if a cached log file exists, otherwise download first.
+            const logPath = this.getLogPath(log);
+            let fileExists = false;
+            if (logPath) {
+                try {
+                    fileExists = await fs.pathExists(logPath);
+                } catch (fsErr) {
+                    logger.error('LogFile.cacheCheck', `Cannot inspect cached log ${log.id}; opening stopped`, fsErr);
+                    const errorMessage = fsErr instanceof Error ? fsErr.message : String(fsErr);
+                    const errorInfo = { hasError: true, message: 'File system error: ' + errorMessage };
+                    if (this.activeProvider?.updateView) {
+                        this.activeProvider.updateView([], false, errorInfo);
+                    }
+                    return;
+                }
+            }
+
+            if (fileExists) {
+                const uri = vscode.Uri.file(logPath!);
+                await openLogContent(uri);
+                this.notifyLogDownloaded(log.id);
+                return;
+            }
+
+            // If the file was deleted using the clear-local-logs button and is still open,
+            // close the editor before recreating it so it is not shown as deleted.
+            for (const editor of vscode.window.visibleTextEditors) {
+                if (editor.document.uri.fsPath === logPath) {
+                    await vscode.window.showTextDocument(editor.document, { preview: false });
+                    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+                    await new Promise(res => setTimeout(res, 300));
+                }
+            }
+
+            // Download the log from the org and open it in the viewer via a temporary file.
+            try {
+                logger.debug('LogFile.download', `Downloading log ${log.id}; size=${log.size} bytes`);
+                const logBody = await logger.run(`LogFile.download:${log.id}`, () => log.getBody());
+                const fileName = this.getLogFileName(log);
+                const openDoc = async (body: string): Promise<void> => {
+                    if (this.logsPath) {
+                        const fullLogPath = path.join(this.logsPath, fileName);
+                        await fs.ensureDir(this.logsPath);
+                        await fs.writeFile(fullLogPath, body);
+                        await vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
+                        await openLogContent(vscode.Uri.file(fullLogPath));
+                    } else {
+                        logger.debug('LogFile.open', 'No workspace storage; opening a temporary document');
+                        const tmpPath = path.join(os.homedir(), `${fileName.replace(/[\\/:*?"<>|]/g, '_')}.log`);
+                        await fs.writeFile(tmpPath, body, 'utf8');
+                        await openLogContent(vscode.Uri.file(tmpPath));
+                    }
+                };
+                await openDoc(logBody);
+
+                // Refresh the VS Code file explorer so the new log appears.
+                await vscode.commands.executeCommand('workbench.files.action.refreshFilesExplorer');
+                logger.debug('LogFile.download', `Log ${log.id} downloaded and opened`);
+
+                // Notify the webview that the log has been downloaded.
+                this.notifyLogDownloaded(log.id);
+            } catch (error) {
+                logger.error('LogFile.download', `Download, save, or editor open stopped for log ${log.id}`, error);
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                const errorInfo = { hasError: true, message: 'Error downloading log: ' + errorMessage };
+                if (this.activeProvider?.updateView) {
+                    this.activeProvider.updateView([], false, errorInfo);
+                }
+            }
+            return;
+        }
+
+        // Default: open log in VS Code editor (existing behavior).
         const logPath = this.getLogPath(log);
         let fileExists = false;
         let errorInfo: { hasError: boolean, message?: string } | undefined = undefined;

@@ -90,40 +90,49 @@ export class ExperienceLoginService {
         const normalizedEmail = validateEmail(email);
 
         return this.orgService.run(username, async connection => {
-            const users = await connection.query<{
+            const escapedEmail = escapeSoqlText(normalizedEmail);
+            const contacts = await connection.query<{
                 Id: string;
                 Name: string;
-                Username: string;
-                Email: string;
-                ContactId?: string | null;
+                Account?: { Name?: string } | null;
             }>(
-                `SELECT Id, Name, Username, Email, ContactId
-             FROM User
-             WHERE Email LIKE '%${escapeSoqlText(normalizedEmail)}%'
-             AND IsActive = true
-             ORDER BY Username, Id
-             LIMIT 201`
+                `SELECT Id, Name, Account.Name FROM Contact WHERE Email = '${escapedEmail}' ORDER BY Id LIMIT 101`
             );
 
-            if (users.records.length > 200) {
-                throw new Error(
-                    'More than 200 active users match this email. Review duplicate user accounts in Salesforce.'
-                );
+            if (contacts.records.length > 100) {
+                throw new Error('More than 100 contacts');
             }
 
-            return users.records.map(user => {
-                if (!user.ContactId) {
-                    throw new Error(`User ${user.Id} is missing ContactId.`);
-                }
+            if (contacts.records.length === 0) {
+                return [];
+            }
 
+            contacts.records.sort((a, b) => a.Id.localeCompare(b.Id));
+
+            const contactIds = contacts.records.map(c => `'${escapeSoqlText(c.Id)}'`).join(',');
+            const users = await connection.query<{
+                Id: string;
+                ContactId: string;
+                Username: string;
+            }>(
+                `SELECT Id, ContactId, Username FROM User WHERE ContactId IN (${contactIds}) AND IsActive = true`
+            );
+
+            const userMap = new Map<string, { Id: string; Username: string }>();
+            for (const user of users.records) {
+                if (user.ContactId) userMap.set(user.ContactId, user);
+            }
+
+            return contacts.records.map(contact => {
+                const user = userMap.get(contact.Id);
                 return {
-                    contactId: user.ContactId,
-                    contactName: user.Name,
-                    userId: user.Id,
-                    username: user.Username
+                    contactId: contact.Id,
+                    contactName: contact.Name,
+                    accountName: contact.Account?.Name,
+                    userId: user?.Id,
+                    username: user?.Username
                 };
             });
-
         });
     }
 
@@ -144,7 +153,7 @@ export class ExperienceLoginService {
         return this.orgService.run(username, async connection => {
             const [networks, users, organizations] = await Promise.all([
                 connection.query(`SELECT Id, Name FROM Network WHERE Id = '${networkId}' LIMIT 2`),
-                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Id = '${userId}' AND ContactId = '${contactId}' AND IsActive = true LIMIT 2`),
+                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Contact.Email = '${escapeSoqlText(normalizedEmail)}' AND IsActive = true LIMIT 2`),
                 connection.query('SELECT Id FROM Organization LIMIT 1')
             ]);
             if (networks.records.length !== 1) throw new Error('The selected network is unavailable. Refresh the network list.');

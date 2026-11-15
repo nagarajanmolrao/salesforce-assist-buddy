@@ -1,7 +1,8 @@
 export const toolRegistry = [
     { id: 'log-viewer', label: 'Log Viewer', behavior: 'select' },
     { id: 'soql-runner', label: 'Query Runner', behavior: 'open-editor' },
-    { id: 'experience-login', label: 'Experience Login URL', behavior: 'open-editor' }
+    { id: 'experience-login', label: 'Experience Login URL', behavior: 'open-editor' },
+    { id: 'apex-debug-log-viewer', label: 'Apex Debug Log Viewer', behavior: 'open-editor' }
 ] as const;
 
 export type ToolId = typeof toolRegistry[number]['id'];

@@ -22,6 +22,7 @@ src/**/*.spec.*
 !src/tools/experienceLogin/ExperienceLogin.html
 !src/tools/experienceLogin/ExperienceLogin.css
 !src/tools/experienceLogin/ExperienceLogin.js
+!src/tools/apexDebugViewer/webview/sf-debug-viewer.html
 
 # Exclude VS Code and git config
 .vscode

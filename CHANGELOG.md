@@ -1,37 +1,28 @@
 # Change Log
 
-## [1.2.3] - Unreleased
-
-### Changed
-- **Log Details removed** - The Log Details feature (dedicated editor webview for inspecting Apex debug log events) has been completely removed from the extension. Logs now open directly in the VS Code editor when clicked. Removed the `salesforceAssistBuddy.openLogsInApexLogViewer` setting, the Log Details command, editor title menu item, and all related source files.
-- **Log Viewer line wrapping** - Horizontal lines in log grid cells now wrap instead of being clipped, improving readability of long messages.
-- **Search removed from Log Viewer** - The inline search field and Ctrl+F search functionality have been removed from the Log Viewer panel. Operation type filtering remains available.
-
-## [1.2.1] - 2026-11-05
-
-### Changed
-- **Experience Login URL** - Removed the browser selection dropdown and Incognito/Private mode toggle. The tool now always generates a session-bearing frontdoor URL (with `sid`), matching v1.0.0/v1.1.0 URL construction. "Open in browser" always opens the session-bearing URL.
-- **URL construction reverted** - `buildExperienceLoginUrl()` always includes the session ID; the conditional `includeSessionId` parameter was removed.
-
-## [1.2.0] - 2026-11-04
+## [1.3.0] - 2026-11-15
 
 ### Features
-- **Experience Login URL** - Added browser selection dropdown with common browsers (Chrome, Firefox, Safari, Edge, Brave, Opera, Vivaldi, Arc)
-- **Incognito/Private Mode Toggle** - Choose whether to open the login URL in incognito/private mode or normal mode
-  - When enabled: Opens the session-bearing URL in an incognito/private window of the selected browser
-  - When disabled: Generates a URL without the session ID and opens it in a normal browser window
-- URL handling updated to support both modes with appropriate browser launch commands
+- **Query Runner** — The saved query dropdown is now searchable. Type to filter saved queries as the library grows; press Enter or click a match to select it.
+- **Apex Debug Log Viewer** — new dedicated tool for inspecting Apex debug logs with call stack tree, virtualized log lines, filter chips, namespace filtering, and global search.
+- Source navigation — class and method names are colored and **Ctrl+clickable** to open the source class at line when source is available.
+- Added `salesforceAssistBuddy.apexDebugLogViewer.sourcePath` setting (default: `<workspace>/force-app/main/default/classes`) to configure the Apex source folder.
+- Source scanning runs asynchronously and does not block log rendering.
+- **Show Raw Log** — opens the current log as a file in the VS Code editor.
+- Added `salesforceAssistBuddy.logViewer.defaultOpenIn` setting (`editor` | `apexDebugLogViewer`, default: `editor`) to configure where a downloaded log opens when clicked — either the default VS Code editor or the Apex Debug Log Viewer.
+- **Dark/Light mode toggle** — Added `salesforceAssistBuddy.apexDebugLogViewer.theme` setting (`system` | `light` | `dark`, default: `system`) for the Apex Debug Log Viewer. An explicit toggle button in the viewer header lets users switch between system (OS-based), light, and dark modes independent of the OS theme.
+- Added `salesforceAssistBuddy.apexDebug.sfCliPath` setting — full path to the Salesforce CLI executable (`sf`/`sfdx`). Leave empty to auto-detect from workspace `node_modules/.bin`, PATH, login shell, or well-known install locations.
+- Added `salesforceAssistBuddy.apexDebug.targetOrg` setting — optional target org username or alias (`--target-org`) for CLI commands.
 
-### Changed
-- Updated Experience Login URL webview with new browser selection controls
-- **Network sObject error handling** - When an org does not support Experience Cloud, `listNetworks()` now shows a friendly message instead of the raw `sObject type 'Network' is not supported` error
-- **Email validation relaxed** - Backend `validateEmail()` now only checks for non-empty, no-spaces, and max length; partial email lookups are supported via `LIKE` in the SOQL query
+### Removed
+- **Log Details** — Removed the `showLogDetails` command, editor title-bar entry, `detailsView` identity, docs page, and implementation files (`ApexLogDetails.*`). `docs/log-details.md` deleted.
 
-### Log Viewer
-- **Log Details opens by default** - Clicking a log now opens the Log Details editor webview instead of a raw `.log` text file
-- **Persistent column widths** - Column width adjustments in the Log Viewer grid are saved and restored across reloads
-- **Full debug content** - Long debug statements with serialized JSON now wrap in the Log Details table and show the full content on hover
-- **Faster initialization** - Logs are pulled immediately when the provider initializes and when switching orgs, without waiting for panel visibility
+### Fixed
+- **Apex Debug Log Viewer color picker** — Clicking the colored dot now opens the native color picker at the dot position instead of the top-left corner of the screen. The hidden color input overlays the dot via absolute positioning with `opacity: 0`.
+- **Apex Debug Log Viewer multi-line log filtering** — Continuation lines (no timestamp, e.g. JSON payloads in `USER_DEBUG` statements) now inherit the event type (`ev`), timestamp (`ts`), namespace (`ns`), and depth from the preceding log line. Filtering on any event type via Log Tags hides the entire multi-line statement together with its parent line.
+- **Apex Debug Log Viewer Log Tags modal** — Added an **Apply** button. Checkbox toggles, Show All, and Hide All no longer apply filtering immediately; clicking Apply applies the filter, updates highlight counts, and closes the modal.
+- **Apex Debug Log Viewer core rendering** — Aligned rendering with parserTool: replaced `renderRestWithSource()` with `applyHl(stripSids(ll.rest))`, removed the hover source button, removed ctrl+click handlers from tree node click events, and removed the extra `requestAnimationFrame` scroller refresh from `renderLogView`.
+- **Apex Debug Log Viewer highlight slots** — Removed the separate visible `<input type="color">` box. Each slot now has only the colored dot which opens the hidden color input on click.
 
 ## [1.1.0] - 2026-10-30
 

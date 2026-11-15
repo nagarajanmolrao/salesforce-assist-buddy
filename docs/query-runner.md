@@ -1,66 +1,38 @@
-# Query Runner — User Guide
+# Query Runner Guide
 
-Run saved SOQL and SOSL queries with parameters across authenticated Salesforce orgs.
+The Query Runner (formerly SOQL Query Runner) lets you run parameterized SOQL and SOSL queries against authenticated Salesforce orgs and export results as CSV.
 
-## What this tool does
+## Opening Query Runner
 
-The **Query Runner** (formerly SOQL Query Runner) lets you select an authenticated org, run saved SOQL or SOSL queries with parameters, and export searchable results as CSV.
+Select **Query Runner** in the panel's tool selector. It opens in a separate editor.
 
-## Prerequisites
+## Query Types
 
-- Authenticated Salesforce CLI orgs
-- VS Code 1.100.0 or later
+Use the query type dropdown to switch between:
 
-## Step-by-step
+- **SOQL** — Standard Salesforce Object Query Language queries.
+- **SOSL** — Salesforce Object Search Language searches across multiple objects.
 
-### 1. Open Query Runner
+## Saved Queries
 
-Select **Query Runner** in the panel's tool selector to open a separate editor. It lists authenticated orgs from Salesforce CLI and defaults to the CLI-selected org when available.
+Queries are stored under `.sfdx/salesforce-assist-buddy/queries.json` (or `.sf/salesforce-assist-buddy/queries.json`). Each saved query now includes a `type` field (`soql` or `sosl`) so the type is preserved across sessions.
 
-### 2. Choose a query type
+The file is created with example queries the first time the editor opens:
+- An Accounts SOQL example
+- A Contacts SOSL example
 
-Use the dropdown to switch between **SOQL** and **SOSL** queries.
+Use **Open library** to edit queries directly and **Reload library** to refresh.
 
-- **SOQL**: `SELECT Id, Name FROM Account WHERE Name LIKE '%{{brandName}}%' LIMIT 10`
-- **SOSL**: `FIND {{searchTerm}} IN ALL FIELDS RETURNING Account(Id, Name), Contact(Id, Email)`
+## Parameters
 
-The query type (SOQL/SOSL) is stored in the JSON library, so existing SOQL queries continue to work unchanged.
-
-### 3. Use query parameters
-
-Parameters use `{{parameterName}}` placeholders and are defined with a type in the saved query JSON. Matching input controls appear in the editor.
-
-- Text parameters can replace a complete literal: `Name = {{name}}`
-- Or appear inside quotes: `Name LIKE '%{{brandName}}%'`
+Query parameters use `{{parameterName}}` placeholders. Matching input controls appear in the editor:
+- Text parameters can replace a complete literal (`Name = {{name}}`)
+- Or appear inside quotes (`Name LIKE '%{{brandName}}%'`)
 - For SOSL queries, the search term is used directly in the FIND clause
 
-### 4. Run the query
+## Results
 
-Select an org and click **Run**. Results are shown in a sortable table with:
+Results are shown in a sortable table with global search and per-column filters. Use **Download CSV** to export the complete result set.
 
-- Global search
-- Per-column filters
-- Column sorting
-
-### 5. Export results
-
-Click **Download CSV** to export the complete result set. The export filename is `query-results-*.csv`.
-
-### 6. Manage saved queries
-
-Saved queries are stored under:
-
-- `.sfdx/salesforce-assist-buddy/queries.json` (when `.sfdx` exists)
-- `.sf/salesforce-assist-buddy/queries.json` (when only `.sf` exists)
-
-The file is created with an Accounts example and a Contacts SOSL example the first time the editor opens. Use **Open library** to edit it directly and **Reload library** to refresh the list.
-
-## Screenshots
-
-![Query Runner showing a sample org selection, saved query, query type selector, and parameter inputs](./screenshots/soql-query-runner-with-results.png)
-
-![Query results showing fictional records, column filters, global search, and the CSV download action](./screenshots/sosl-query-runner-with-results.png)
-
----
-
-*Part of Salesforce Assist Buddy for VS Code.*
+![Query Runner (SOQL)](screenshots/soql-query-runner-with-results.png)
+![Query Runner (SOSL)](screenshots/sosl-query-runner-with-results.png)
