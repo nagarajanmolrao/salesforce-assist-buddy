@@ -89,8 +89,9 @@ test('loads network names and uses the runtime contact email with safe SOQL esca
     assert.equal(state.networks[0].name, 'Sample Customer Portal');
     await service.generate('admin@example.test', "o'neil@example.test", ids.network, ids.contact, ids.user);
     const userQuery = module.queries.find(query => query.includes('FROM User'));
-    assert.ok(userQuery.includes("Contact.Email = 'o\\'neil@example.test'"));
-    assert.match(userQuery, /IsActive = true LIMIT 2$/);
+    assert.ok(userQuery.includes(`WHERE Id = '${ids.user}'`));
+    assert.ok(userQuery.includes(`ContactId = '${ids.contact}'`));
+    assert.match(userQuery, /IsActive = true LIMIT 1$/);
     assert.ok(module.queries.some(query => query.includes(`Network WHERE Id = '${ids.network}'`)));
 });
 
@@ -122,17 +123,34 @@ test('finds contacts by email and returns full names with active linked users', 
     const contactQuery = module.queries.find(query => query.includes('FROM Contact'));
     assert.doesNotMatch(contactQuery, /ORDER BY Name\b/i);
     assert.match(contactQuery, /ORDER BY Id LIMIT 101$/);
-    assert.ok(module.queries.some(query => query.includes("FROM Contact WHERE Email = 'o\\'neil@example.test'")));
+    assert.ok(module.queries.some(query => query.includes("FROM Contact WHERE Email LIKE '%o\\'neil@example.test%'")));
     assert.ok(module.queries.some(query => query.includes('ContactId IN (') && query.includes('IsActive = true')));
 });
 
-test('empty contact lookup skips the user query and remains independent of default-org changes', async () => {
-    const module = loadService({ contacts: [] });
+test('finds contact by email on User when Contact has no email', async () => {
+    const module = loadService({
+        contacts: [],
+        users: [{ Id: ids.user, ContactId: ids.contact, Username: 'experience@example.test' }]
+    });
+    const service = new module.ExperienceLoginService();
+    await service.listNetworks('admin@example.test');
+    const matches = await service.findContacts('admin@example.test', 'experience@example.test');
+    assert.equal(matches.length, 1);
+    assert.equal(matches[0].contactId, ids.contact);
+    assert.equal(matches[0].contactName, '');
+    assert.equal(matches[0].userId, ids.user);
+    assert.equal(matches[0].username, 'experience@example.test');
+    assert.ok(module.queries.some(query => query.includes('FROM User WHERE Email LIKE')));
+});
+
+test('empty contact lookup skips user match but still queries users for email-on-user contacts', async () => {
+    const module = loadService({ contacts: [], users: [] });
     const service = new module.ExperienceLoginService();
     await service.listNetworks('admin@example.test');
     const matches = await service.findContacts('admin@example.test', 'nobody@example.test');
     assert.equal(matches.length, 0);
-    assert.ok(!module.queries.some(query => query.includes('FROM User')));
+    // Users table is now always consulted so contacts with email-only-on-User are found.
+    assert.ok(module.queries.some(query => query.includes('FROM User WHERE Email LIKE')));
     module.changeOrg('another@example.test');
     assert.equal((await service.findContacts('admin@example.test', 'person@example.test')).length, 0);
     assert.ok(module.orgRuns.every(username => username === 'admin@example.test'));
@@ -151,13 +169,18 @@ test('contact lookup is bounded and does not silently truncate ambiguous results
 
 test('revalidates the selected active Experience user and contact', async () => {
     for (const users of [[], [{ Id: ids.user }], [{ Id: '005000000000002', ContactId: ids.contact }],
-        [{ Id: ids.user, ContactId: '003000000000002' }],
-        [{ Id: ids.user, ContactId: ids.contact }, { Id: ids.user, ContactId: ids.contact }]]) {
+        [{ Id: ids.user, ContactId: '0030000000002' }]]) {
         const module = loadService({ users });
         const service = new module.ExperienceLoginService();
         await service.listNetworks('admin@example.test');
         await assert.rejects(service.generate('admin@example.test', 'person@example.test', ids.network, ids.contact, ids.user), /selected contact no longer/);
     }
+    // A matching contact+user pair succeeds even if duplicate rows exist.
+    const module = loadService({ users: [{ Id: ids.user, ContactId: ids.contact }, { Id: ids.user, ContactId: ids.contact }] });
+    const service = new module.ExperienceLoginService();
+    await service.listNetworks('admin@example.test');
+    const url = await service.generate('admin@example.test', 'person@example.test', ids.network, ids.contact, ids.user);
+    assert.ok(url.startsWith('https://'));
 });
 
 test('rejects invalid inputs and unauthenticated orgs', async () => {

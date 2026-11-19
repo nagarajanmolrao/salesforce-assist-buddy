@@ -83,31 +83,76 @@ export class ExperienceLoginService {
 
         return this.orgService.run(username, async connection => {
             const escapedEmail = escapeSoqlText(normalizedEmail);
-            const contacts = await connection.query<{
+
+            // Contacts whose own Email field matches.
+            const contactMatches = await connection.query<{
                 Id: string;
                 Name: string;
                 Account?: { Name?: string } | null;
             }>(
-                `SELECT Id, Name, Account.Name FROM Contact WHERE Email = '${escapedEmail}' ORDER BY Id LIMIT 101`
+                `SELECT Id, Name, Account.Name FROM Contact WHERE Email LIKE '%${escapedEmail}%' ORDER BY Id LIMIT 101`
             );
 
-            if (contacts.records.length > 100) {
+            if (contactMatches.records.length > 100) {
                 throw new Error('More than 100 contacts');
             }
 
-            if (contacts.records.length === 0) {
+            // Contacts without an email on Contact but with one on their active User.
+            const userMatches = await connection.query<{
+                Id: string;
+                ContactId: string;
+                Username: string;
+            }>(
+                `SELECT Id, ContactId, Username FROM User WHERE Email LIKE '%${escapedEmail}%' AND IsActive = true LIMIT 101`
+            );
+
+            const contactById = new Map<string, {
+                Id: string;
+                Name: string;
+                Account?: { Name?: string } | null;
+            }>();
+            for (const contact of contactMatches.records) {
+                contactById.set(contact.Id, contact);
+            }
+            for (const user of userMatches.records) {
+                if (user.ContactId && !contactById.has(user.ContactId)) {
+                    const placeholder = {
+                        Id: user.ContactId,
+                        Name: '',
+                        Account: null
+                    };
+                    contactById.set(user.ContactId, placeholder);
+                }
+            }
+
+            if (contactById.size === 0) {
                 return [];
             }
 
-            contacts.records.sort((a, b) => a.Id.localeCompare(b.Id));
+            const allContactIds = [...contactById.keys()].map(id => `'${escapeSoqlText(id)}'`).join(',');
+            const fullContacts = await connection.query<{
+                Id: string;
+                Name: string;
+                Account?: { Name?: string } | null;
+            }>(
+                `SELECT Id, Name, Account.Name FROM Contact WHERE Id IN (${allContactIds}) ORDER BY Id`
+            );
 
-            const contactIds = contacts.records.map(c => `'${escapeSoqlText(c.Id)}'`).join(',');
+            const fullById = new Map<string, {
+                Id: string;
+                Name: string;
+                Account?: { Name?: string } | null;
+            }>();
+            for (const contact of fullContacts.records) {
+                fullById.set(contact.Id, contact);
+            }
+
             const users = await connection.query<{
                 Id: string;
                 ContactId: string;
                 Username: string;
             }>(
-                `SELECT Id, ContactId, Username FROM User WHERE ContactId IN (${contactIds}) AND IsActive = true`
+                `SELECT Id, ContactId, Username FROM User WHERE ContactId IN (${allContactIds}) AND IsActive = true`
             );
 
             const userMap = new Map<string, { Id: string; Username: string }>();
@@ -115,8 +160,9 @@ export class ExperienceLoginService {
                 if (user.ContactId) userMap.set(user.ContactId, user);
             }
 
-            return contacts.records.map(contact => {
-                const user = userMap.get(contact.Id);
+            return [...contactById.keys()].sort((a, b) => a.localeCompare(b)).map(contactId => {
+                const contact = fullById.get(contactId) || contactById.get(contactId)!;
+                const user = userMap.get(contactId);
                 return {
                     contactId: contact.Id,
                     contactName: contact.Name,
@@ -129,7 +175,7 @@ export class ExperienceLoginService {
     }
 
     public async generate(username: string, email: string, networkId: string, contactId: string, userId: string): Promise<string> {
-        const normalizedEmail = validateEmail(email);
+        validateEmail(email);
         if (!/^0DB[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(networkId)) throw new Error('Select an Experience Cloud network.');
         if (!/^003[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(contactId) ||
             !/^005[a-zA-Z0-9]{12}(?:[a-zA-Z0-9]{3})?$/.test(userId)) {
@@ -139,12 +185,12 @@ export class ExperienceLoginService {
         return this.orgService.run(username, async connection => {
             const [networks, users, organizations] = await Promise.all([
                 connection.query(`SELECT Id, Name FROM Network WHERE Id = '${networkId}' LIMIT 2`),
-                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Contact.Email = '${escapeSoqlText(normalizedEmail)}' AND IsActive = true LIMIT 2`),
+                connection.query(`SELECT Id, Username, ContactId FROM User WHERE Id = '${escapeSoqlText(userId)}' AND ContactId = '${escapeSoqlText(contactId)}' AND IsActive = true LIMIT 1`),
                 connection.query('SELECT Id FROM Organization LIMIT 1')
             ]);
             if (networks.records.length !== 1) throw new Error('The selected network is unavailable. Refresh the network list.');
             const user = users.records[0] as { Id: string; ContactId?: string } | undefined;
-            if (users.records.length !== 1 || user?.ContactId !== contactId || user.Id !== userId) {
+            if (!user || user.Id !== userId || user.ContactId !== contactId) {
                 throw new Error('The selected contact no longer has this active Experience user or matching email. Find contacts again.');
             }
             const organization = organizations.records[0] as { Id: string } | undefined;

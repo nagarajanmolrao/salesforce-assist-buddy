@@ -69,6 +69,10 @@ export class ExperienceLoginPanel implements vscode.Disposable {
                 const revision = ++this.revision;
                 operationRevision = revision;
                 if (typeof message.username !== 'string' || !message.username) throw new Error('Select an authenticated org.');
+                // Refresh the org list and clear cached connections so a fresh
+                // connection is established for the newly selected org.
+                await this.service.listOrgs(true);
+                if (this.disposed || revision !== this.revision) return;
                 this.selectedUsername = message.username;
                 logger.debug('Experience Login.networks', 'Loading networks for the selected org');
                 const result = await this.service.listNetworks(message.username);

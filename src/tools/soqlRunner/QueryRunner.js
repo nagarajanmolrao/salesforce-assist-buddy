@@ -372,7 +372,7 @@
         dropdownInput.addEventListener('input', () => {
             const term = dropdownInput.value.toLowerCase();
             dropdownList.querySelectorAll('.dropdown-option').forEach(opt => {
-                opt.hidden = opt.classList.contains('placeholder') || opt.textContent.toLowerCase().includes(term);
+                opt.hidden = opt.classList.contains('placeholder') || !opt.textContent.toLowerCase().includes(term);
             });
         });
         dropdownInput.addEventListener('keydown', e => {
