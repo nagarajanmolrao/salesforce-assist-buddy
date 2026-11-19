@@ -17,7 +17,7 @@ The screenshots below show the extension's webviews rendered with fictional samp
 ## Requirements
 
 - VS Code 1.100.0 or later.
-- Salesforce CLI (`sf`) **version 2.87.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
+- Salesforce CLI (`sf`) **version 2.136.0 or later** installed and available on PATH. The extension checks the CLI version on startup and shows an error if the installed version is too old.
 - Authenticated Salesforce CLI orgs for the Query Runner. Log Viewer uses the configured target org in the Salesforce project's `.sf/config.json` or the user's global configuration.
 - For development: Node.js 22 or later and npm.
 
@@ -25,7 +25,7 @@ The screenshots below show the extension's webviews rendered with fictional samp
 
 1. Build the VSIX using the development commands below.
 
-2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.1.vsix`.
+2. Run **Extensions: Install from VSIX...** in VS Code and choose `salesforce-assist-buddy-1.3.2.vsix`.
 3. Open an authenticated Salesforce project and the **Salesforce Assist Buddy** panel.
 
 The GitHub repository is configured for documentation links; Marketplace publication is not configured.
@@ -129,7 +129,7 @@ The extension removes files older than 48 hours from its extension-specific log 
 npm.cmd ci
 npm.cmd test
 npm.cmd run compile
-npx --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.3.1.vsix
+npx --no-install vsce package --no-dependencies --out salesforce-assist-buddy-1.3.2.vsix
 ```
 
 On other platforms, use `npm` and `npx`. `npm test` runs TypeScript validation and the Node-based command, settings, logger, and SOQL query tests. `npm run compile` creates the bundled extension in `out`.
@@ -139,7 +139,7 @@ The VSIX includes TypeScript sources, build inputs, license, and notices. The co
 ## Repository Identity
 
 - Extension: `Anmol.salesforce-assist-buddy`.
-- Version: `1.3.1`.
+- Version: `1.3.2`.
 - Command prefix: `salesforce-assist-buddy.`.
 - Log view: `salesforceAssistBuddy.logs`.
 

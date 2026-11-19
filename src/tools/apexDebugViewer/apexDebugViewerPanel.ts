@@ -109,6 +109,8 @@ async function handleMessage(msg: any): Promise<void> {
                         name: root ? root.name : null,
                         sourcePath: getSourcePath(),
                         theme: getConfiguration().get<'system' | 'light' | 'dark'>('apexDebugLogViewer.theme') || 'system',
+                        editorFontSize: getConfiguration().get<number>('editor.fontSize') || 14,
+                        editorFontFamily: getConfiguration().get<string>('editor.fontFamily') || '',
                     });
                     const queued = pendingLogs;
                     pendingLogs = [];

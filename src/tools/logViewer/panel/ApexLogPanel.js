@@ -81,7 +81,19 @@
         toolSelector.value = activeToolId;
     }
 
-    // On load, always clear any cached data to ensure only fresh logs are shown
+    // Restore persisted UI state first so column widths survive reloads.
+    try {
+        const state = vscode.getState() || {};
+        lastData = state.data || [];
+        columnWidths = new Map(state.columnWidths || []);
+        sortConfig = state.sortConfig || { field: null, ascending: true };
+        readLogIds = new Set(state.readLogIds || []); // Restore read states
+    } catch (e) {
+        reportError('Failed to restore state', e);
+    }
+
+    // On load, always clear cached log data to ensure only fresh logs are shown.
+    // Persisted UI state (column widths, sort config, read states, active tool) is retained.
     try {
         vscode.setState({
             data: [],
@@ -93,17 +105,6 @@
         lastData = [];
     } catch (e) {
         reportError('Failed to clear state on load', e);
-    }
-
-    // Initialize state
-    try {
-        const state = vscode.getState() || {};
-        lastData = state.data || [];
-        columnWidths = new Map(state.columnWidths || []);
-        sortConfig = state.sortConfig || { field: null, ascending: true };
-        readLogIds = new Set(state.readLogIds || []); // Restore read states
-    } catch (e) {
-        reportError('Failed to restore state', e);
     }
 
     function saveState() {

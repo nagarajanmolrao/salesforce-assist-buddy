@@ -21,6 +21,7 @@ Select **Experience Login URL** from the tool dropdown to open its editor.
 - **Refresh networks** reloads the selected org's networks.
 - Switching orgs clears contact selections and generated URLs, reloads networks, and uses an explicitly username-scoped connection.
 - Contacts without an active Experience user remain listed but cannot be selected for login.
+- If a Contact has no email but its linked active User does, the Contact still appears in results when searching that email.
 - The lookup is bounded to 100 contacts and 200 linked active users.
 
 ## Security

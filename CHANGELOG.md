@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.2] - 2026-11-18
+
+### Fixed
+- **Experience Login Find Contacts** — Contacts whose email lives only on the User record (not on Contact) are now found. `findContacts` queries both `Contact.Email` and `User.Email`, merges and deduplicates results. `generate` validation accepts matches via `User.Email` or `Contact.Email`.
+- **Experience Login Generate URL** — Fixed "The selected contact no longer has this active Experience user or matching email" error that occurred for valid contact+user pairs when multiple users matched the same email pattern. Validation now checks the exact selected `User.Id` + `User.ContactId` pair directly instead of requiring exactly one email-LIKE match.
+- **Experience Login org switch** — `listOrgs(true)` forces a fresh org list and clears cached connections when switching orgs, preventing stale results.
+- **SF CLI minimum version** — Restored to `2.136.0` (was incorrectly `2.87.0`).
+
 ## [1.3.1] - 2026-11-15
 
 ### Features
